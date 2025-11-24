@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Promise Data Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v4.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins';
+            background: #F2ECE6;
+            color: #1a1a1a;
+            overflow: hidden;
+        }
+
+        /* Top Header Strip */
+        .header-strip {
+            background-color: #8B4513;
+            color: white;
+            padding: 15px 30px;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .promise-nav {
+            display: flex;
+            gap: 70px;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .promise-tab {
+            font-size: 14px;
+            font-weight: 100;
+            color: white;
+            cursor: pointer;
+            padding: 8px 0;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            position: relative;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .promise-tab:not(:last-child)::after {
+            content: '-----';
+            position: absolute;
+            left: calc(100% + 20px);
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 300;
+            letter-spacing: 3px;
+        }
+
+        .promise-tab:hover {
+            border-bottom-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .promise-tab.active {
+            border-bottom-color: white;
+            font-weight: 600;
+        }
+
+        /* Left Navbar */
+        .filters-panel {
+            background-color: #F2ECE6;
+            color: #34495e;
+            padding: 0;
+            width: 300px;
+            min-height: calc(100vh - 60px);
+            height: calc(100% - 60px);
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 999;
+        }
+
+        .filter-section {
+            margin: 5px 0;
+            background-color: white;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px 20px;
+            background-color: white;
+        }
+
+        .filter-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .filter-header .toggle-icon {
+            font-size: 18px;
+            color: #34495e;
+            transition: transform 0.3s;
+        }
+
+        .filter-header.collapsed .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .filter-content {
+            padding: 0 20px 20px 20px;
+            background-color: white;
+        }
+
+        .filter-content.hidden {
+            display: none;
+        }
+
+        .dropdown-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: white;
+            font-size: 14px;
+            color: #34495e;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .dropdown-select:focus {
+            outline: none;
+            border-color: #34495e;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            font-size: 14px;
+            color: #34495e;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Main content */
+        #map-container {
+            position: fixed;
+            left: 300px;
+            top: 60px;
+            width: calc(75vw - 300px);
+            height: calc(100vh - 60px);
+        }
+
+        #stacked-bar-chart {
+            position: absolute;
+            top: 58px;
+            left: 20px;
+            right: 20px;
+            z-index: 101;
+            background: transparent;
+        }
+
+        #chart-container {
+            position: fixed;
+            right: 0;
+            top: 60px;
+            width: 25vw;
+            height: calc(100vh - 60px);
+            background: #F2ECE6;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        svg#map {
+            display: block;
+            background: #F2ECE6;
+        }
+
+        .country {
+            stroke: #ffffff;
+            stroke-width: 0.5;
+            cursor: pointer;
+            transition: stroke-width 0.2s;
+        }
+
+        .country:hover {
+            stroke: #1a1a1a;
+            stroke-width: 1.5;
+        }
+
+        .bubble {
+            stroke: #ffffff;
+            stroke-width: 1.5;
+            opacity: 0.6;
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        .bubble.readiness {
+            fill: #2ecc71;
+        }
+
+        .bubble.vulnerability {
+            fill: #e74c3c;
+        }
+
+        .bubble.ghg_emissions {
+            fill: #e67e22;
+        }
+
+        .bubble.ghg_per_capita {
+            fill: #e69681;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: transparent;
+            padding: 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            max-width: calc(75vw - 340px);
+        }
+
+        .map-headline {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            z-index: 102;
+            background: transparent;
+            padding: 0;
+        }
+
+        .map-headline h2 {
+            font-size: 25px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin: 0 0 0px 0;
+        }
+
+        .map-headline p {
+            font-size: 20px;
+            color: #1e1e1e;
+            margin: -4px 3px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.8);
+            flex-shrink: 0;
+        }
+
+        /* KPI Header - Right Panel Only */
+        .kpi-header {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            padding: 10px 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        /* .chart-headline {
+            padding: 20px 25px;
+            background: #F2ECE6;
+            border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
+        } */
+
+        /* .chart-headline h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 5px 0;
+        }
+
+        .chart-headline p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+        } */
+
+        .kpi-stats {
+            display: flex;
+            gap: 200px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .kpi-item {
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 400;
+            line-height: 1;
+            margin-bottom: 1px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        /* Micro viz - Single Row */
+        .micro-viz {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+/* 
+        .micro-box {
+            flex: 1;
+            background: rgba(255,255,255,0.15);
+            padding: 4px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgb(255, 255, 255);
+        } */
+/* 
+        .micro-icon {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 3px;
+        } */
+/* 
+        .micro-icon.yes {
+            color: #2ecc71;
+        }
+
+        .micro-icon.no {
+            color: #e74c3c;
+        } */
+
+        /* .micro-label {
+            font-size: 10px;
+            opacity: 0.9;
+        } */
+
+        /* Country Info in KPI Header */
+        .kpi-country {
+            margin-top: 9px;
+            padding-top: 4px;
+            border-top: 3px solid rgba(232, 232, 232, 0.663)
+        }
+
+        .kpi-country-name {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            opacity: 0.95;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .country-tag {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .country-tag.high {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .country-tag.low {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .kpi-country-status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .kpi-status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 18px;
+        }
+
+        .kpi-status-icon {
+            width: 28px;
+            height: 28px;
+            display: inline-block;
+        }
+
+        /* Charts Container */
+        .charts-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 00px 00px 00px;
+        }
+
+        .chart-section {
+            background: #F2ECE6;
+            padding: 00px;
+            border-radius: 00px;
+            margin-bottom: 00px;
+        }
+
+        .chart-section h3 {
+            font-size: 17px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            
+        }
+
+        .bar {
+            transition: opacity 0.2s;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+        }
+
+        .axis text {
+            font-size: 11px;
+            fill: #666;
+        }
+
+        .axis line,
+        .axis path {
+            stroke: #e0e0e0;
+        }
+
+        .chart-label {
+            font-size: 11px;
+            fill: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .center-line {
+            stroke: #1a1a1a;
+            stroke-width: 2;
+        }
+
+        .country-line {
+            fill: none;
+            stroke: #d0d0d0;
+            stroke-width: 1;
+            opacity: 0.9;
+        }
+
+        .country-line.highlighted {
+            stroke: #8B4513;
+            stroke-width: 4.5;
+            opacity: 1;
+            z-index: 100;
+        }
+
+        .endpoint-dot {
+            fill: #8B4513;
+            stroke: #8B4513;
+            stroke-width: 2;
+        }
+
+        .grid-line {
+            stroke: #e0e0e0;
+            stroke-dasharray: 2,2;
+            opacity: 0.5;
+        }
+
+        .median-line {
+            stroke: #e74c3c;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            opacity: 0.8;
+        }
+
+        .country-label {
+            position: absolute;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 3000;
+            white-space: nowrap;
+        }
+
+        .country-label.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header Strip -->
+    <div class="header-strip">
+        <div class="header-title">Climate Promises</div>
+        <div class="promise-nav">
+            <button class="promise-tab active" data-layer="paris" onclick="switchPromise('paris')">Paris Agreement</button>
+            <button class="promise-tab" data-layer="ndc" onclick="switchPromise('ndc')">Nationally Determined Contributions (NDCs)</button>
+            <button class="promise-tab" data-layer="lts" onclick="switchPromise('lts')">Long Term Strategy (LTS)</button>
+            <button class="promise-tab" data-layer="net_zero" onclick="switchPromise('net_zero')">Net-Zero Target</button>
+        </div>
+    </div>
+
+    <!-- Left Navbar -->
+    <div class="filters-panel">
+        <!-- Select Nations -->
+        <div class="filter-section">
+            <div class="filter-header">
+                <h3>Select nations</h3>
+            </div>
+            <div class="filter-content" id="groupby-content">
+                <select class="dropdown-select" id="groupBySelect" onchange="handleGroupByChange()">
+                    <option value="all">All Countries</option>
+                    <option value="region">By Region</option>
+                    <option value="income_group">By Income</option>
+                    <option value="economic_block">By Economic Block</option>
+                </select>
+                <div id="subOptions"></div>
+            </div>
+        </div>
+
+        <!-- Overlay Indicators -->
+        <div class="filter-section">
+            <div class="filter-header" onclick="toggleSection('emissions')">
+                <h3>Overlay indicators:</h3>
+                <span class="toggle-icon">−</span>
+            </div>
+            <div class="filter-content" id="emissions-content">
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="checkbox" id="emissions-ghg" name="emissions" value="ghg_emissions">
+                        <label for="emissions-ghg">GHG Emissions (billion t)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="checkbox" id="emissions-capita" name="emissions" value="ghg_per_capita">
+                        <label for="emissions-capita">GHG Emissions per capita (t/person)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="checkbox" id="emissions-readiness" name="emissions" value="readiness">
+                        <label for="emissions-readiness">Readiness</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="checkbox" id="emissions-vulnerability" name="emissions" value="vulnerability">
+                        <label for="emissions-vulnerability">Vulnerability</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div class="map-headline">
+            <h2 id="kpiTitle">Paris Agreement:</h2>
+            <p id="kpiSubtitle">194 out of 198 countries have committed</p>
+        </div>
+        <div id="stacked-bar-chart"></div>
+        <svg id="map"></svg>
+        <div class="legend" id="legendContent"></div>
+        <div class="country-label" id="countryLabel"></div>
+    </div>
+
+    <div id="chart-container">
+        <!-- KPI Header -->
+        <div class="kpi-header">
+            <div class="kpi-stats">
+                <div class="kpi-item">
+                    <div class="kpi-value" id="kpiNations">194</div>
+                    <div class="kpi-label">Nations</div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-value" id="kpiPercent">94.3%</div>
+                    <div class="kpi-label">Share of emissions</div>
+                </div>
+            </div>
+            <div class="kpi-country">
+                <div class="kpi-country-name">
+                    <span id="selectedCountryName">China</span>
+                    <span id="readinessTag" class="country-tag" style="display: none;"></span>
+                    <span id="vulnerabilityTag" class="country-tag" style="display: none;"></span>
+                </div>
+                <div class="kpi-country-status">
+                    <div class="kpi-status-item">
+                        <img class="kpi-status-icon" id="parisStatus" src="placeholder-circle.svg" alt="○">
+                        <span>Paris</span>
+                    </div>
+                    <div class="kpi-status-item">
+                        <img class="kpi-status-icon" id="ndcStatus" src="placeholder-circle.svg" alt="○">
+                        <span>NDC</span>
+                    </div>
+                    <div class="kpi-status-item">
+                        <img class="kpi-status-icon" id="ltsStatus" src="placeholder-circle.svg" alt="○">
+                        <span>LTS</span>
+                    </div>
+                    <div class="kpi-status-item">
+                        <img class="kpi-status-icon" id="netZeroStatus" src="placeholder-circle.svg" alt="○">
+                        <span>Net Zero</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-wrapper">
+            <div id="scatter-chart"></div>
+        </div>
+    </div>
+
+    <script>
+        const mapWidth = window.innerWidth - 300 - (window.innerWidth * 0.25);
+        const mapHeight = window.innerHeight - 60;
+        let currentLayer = 'paris';
+        let currentBubbleMetric = 'none';
+        let currentGroupBy = 'all';
+        let selectedFilter = null;
+        let countryData = {};
+        let geoData = null;
+        let hoveredCountry = null;
+        let emissionsData = [];
+
+        function switchPromise(layer) {
+            currentLayer = layer;
+            selectedFilter = null;
+
+            // Update active tab
+            document.querySelectorAll('.promise-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-layer="${layer}"]`).classList.add('active');
+
+            drawMap();
+            updateLegend();
+            updateCharts();
+            updateKPIHeader();
+        }
+
+        const colorSchemes = {
+            paris: {
+                'Joined Agreement': '#8B4513',
+                'Signed Agreement': '#f39c12',
+                'Withdrawn Agreement': '#C0C0C0',
+                'No': '#C0C0C0',
+                'default': '#ecf0f1'
+            },
+            ndc: {
+                '2025 NDC (Third NDC)': '#8B4513',
+                '2025 NDC (Second NDC)': '#a46947',
+                '2020 NDC (Second NDC)': '#bb8d73',
+                '2020 NDC (Updated First NDC)': '#d3b2a1',
+                'Only First NDC': '#f39c12',
+                'No Document Submitted (Only INDC)': '#C0C0C0',
+                'default': '#ecf0f1'
+            },
+            lts: {
+                'Yes': '#8B4513',
+                'No': '#C0C0C0',
+                'default': '#ecf0f1'
+            },
+            net_zero: {
+                'In Law': '#8B4513',
+                'In Policy Document': '#a46947',
+                'Announced': '#d3b2a1',
+                'Achieved': 'green',
+                'No': '#C0C0C0',
+                'default': '#ecf0f1'
+            },
+            net_zero_status_clean: {
+                'In Law': '#8B4513',
+                'In Policy Document': '#a46947',
+                'Announced': '#d3b2a1',
+                'Achieved': 'green',
+                'No': '#C0C0C0',
+                'default': '#ecf0f1'
+            }
+        };
+
+        const svg = d3.select("#map")
+            .attr("width", mapWidth)
+            .attr("height", mapHeight);
+
+        const g = svg.append("g");
+
+        const projection = d3.geoMercator()
+            .scale(150)
+            .translate([mapWidth / 2, mapHeight / 1.5]);
+
+        const path = d3.geoPath().projection(projection);
+
+        const zoom = d3.zoom()
+            .scaleExtent([1, 8])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+
+        svg.call(zoom);
+
+        const countryLabel = d3.select("#countryLabel");
+
+        const nameMapping = {
+            'United States of America': 'United States',
+            'Democratic Republic of the Congo': 'Democratic Republic of the Congo',
+            'Republic of the Congo': 'Congo',
+            'Tanzania': 'United Republic of Tanzania',
+            'The Bahamas': 'Bahamas',
+            'Republic of Serbia': 'Serbia',
+            'East Timor': 'Timor-Leste',
+            'Timor-Leste': 'Timor-Leste',
+            'Ivory Coast': 'Côte d\'Ivoire',
+            'Czech Republic': 'Czechia',
+            'Czechia': 'Czechia',
+            'Bosnia and Herzegovina': 'Bosnia and Herzegovina',
+            'Republic of Korea': 'Republic of Korea',
+            'South Korea': 'Republic of Korea',
+            'Korea': 'Republic of Korea',
+            'Russia': 'Russia',
+            'Russian Federation': 'Russia',
+            'Greenland': 'Greenland',
+            'Norway': 'Norway',
+            'Finland': 'Finland',
+            'Poland': 'Poland',
+            'Laos': 'Lao PDR',
+            'Lao PDR': 'Lao PDR',
+            'Vietnam': 'Viet Nam',
+            'Viet Nam': 'Viet Nam'
+        };
+
+        function cleanNetZeroStatus(status) {
+            if (!status || status === 'No' || status === '#N/A') return 'No';
+            const lowerStatus = status.toLowerCase();
+            if (lowerStatus.includes('in law')) return 'In Law';
+            if (lowerStatus.includes('in policy document')) return 'In Policy Document';
+            if (lowerStatus.includes('political pledge') || lowerStatus.includes('announced')) return 'Announced';
+            if (lowerStatus.includes('achieved')) return 'Achieved';
+            return 'Announced';
+        }
+
+        function updateCountryInfo(data) {
+            if (!data) {
+                document.getElementById('selectedCountryName').textContent = 'Hover over a country';
+                document.getElementById('readinessTag').style.display = 'none';
+                document.getElementById('vulnerabilityTag').style.display = 'none';
+                ['parisStatus', 'ndcStatus', 'ltsStatus', 'netZeroStatus'].forEach(id => {
+                    document.getElementById(id).src = 'placeholder-circle.svg';
+                    document.getElementById(id).alt = '○';
+                    document.getElementById(id).className = 'kpi-status-icon';
+                });
+                return;
+            }
+
+            document.getElementById('selectedCountryName').textContent = data.Country;
+
+            // Calculate emission rankings based on 2023 annual GHG data
+            const emissions2023 = emissionsData
+                .filter(d => d.year === 2023)
+                .sort((a, b) => b.annual_ghg - a.annual_ghg);
+
+            const countryEmission = emissions2023.find(e =>
+                e.entity === data.Country ||
+                nameMapping[e.entity] === data.Country ||
+                e.entity === nameMapping[data.Country]
+            );
+
+            const readinessTag = document.getElementById('readinessTag');
+            if (countryEmission) {
+                const rank = emissions2023.indexOf(countryEmission) + 1;
+                const ordinal = rank === 1 ? 'st' : rank === 2 ? 'nd' : rank === 3 ? 'rd' : 'th';
+                readinessTag.textContent = `${rank}${ordinal} largest emitter`;
+                readinessTag.className = rank <= 10 ? 'country-tag low' : 'country-tag high';
+                readinessTag.style.display = 'inline-block';
+            } else {
+                readinessTag.style.display = 'none';
+            }
+
+            // Hide vulnerability tag as it's no longer used
+            const vulnerabilityTag = document.getElementById('vulnerabilityTag');
+            vulnerabilityTag.style.display = 'none';
+
+            const parisEl = document.getElementById('parisStatus');
+            if (data.paris === 'Joined Agreement' || data.paris === 'Signed Agreement' || data.paris === 'Withdrawn Agreement') {
+                parisEl.src = 'tick.svg';
+                parisEl.alt = '✓';
+                parisEl.className = 'kpi-status-icon';
+            } else {
+                parisEl.src = 'cross.svg';
+                parisEl.alt = '✗';
+                parisEl.className = 'kpi-status-icon';
+            }
+
+            const ndcEl = document.getElementById('ndcStatus');
+            if (data.ndc && data.ndc !== 'No Document Submitted (Only INDC)') {
+                ndcEl.src = 'tick.svg';
+                ndcEl.alt = '✓';
+                ndcEl.className = 'kpi-status-icon';
+            } else {
+                ndcEl.src = 'cross.svg';
+                ndcEl.alt = '✗';
+                ndcEl.className = 'kpi-status-icon';
+            }
+
+            const ltsEl = document.getElementById('ltsStatus');
+            if (data.lts === 'Yes') {
+                ltsEl.src = 'tick.svg';
+                ltsEl.alt = '✓';
+                ltsEl.className = 'kpi-status-icon';
+            } else {
+                ltsEl.src = 'cross.svg';
+                ltsEl.alt = '✗';
+                ltsEl.className = 'kpi-status-icon';
+            }
+
+            const netZeroEl = document.getElementById('netZeroStatus');
+            if (data.net_zero === 'Yes') {
+                netZeroEl.src = 'tick.svg';
+                netZeroEl.alt = '✓';
+                netZeroEl.className = 'kpi-status-icon';
+            } else {
+                netZeroEl.src = 'cross.svg';
+                netZeroEl.alt = '✗';
+                netZeroEl.className = 'kpi-status-icon';
+            }
+        }
+
+        function updateKPIHeader() {
+            let totalGHG = 0;
+            let categoryGHG = 0;
+            let categoryCount = 0;
+            let totalCount = 0;
+
+            // Calculate totals based on filter
+            Object.values(countryData).forEach(d => {
+                let includeInTotal = true;
+
+                if (selectedFilter) {
+                    if (selectedFilter.type === 'economic_block') {
+                        const blockValue = d[selectedFilter.value];
+                        includeInTotal = blockValue && blockValue !== 'No' && blockValue !== '0';
+                    } else {
+                        includeInTotal = d[selectedFilter.type] === selectedFilter.value;
+                    }
+                }
+
+                if (includeInTotal) {
+                    totalCount++;
+                    const ghg = parseFloat(String(d.ghg_emissions).replace(/,/g, ''));
+                    if (!isNaN(ghg)) totalGHG += ghg;
+                }
+            });
+
+            // Calculate category counts based on layer
+            Object.values(countryData).forEach(d => {
+                let includeInTotal = true;
+
+                if (selectedFilter) {
+                    if (selectedFilter.type === 'economic_block') {
+                        const blockValue = d[selectedFilter.value];
+                        includeInTotal = blockValue && blockValue !== 'No' && blockValue !== '0';
+                    } else {
+                        includeInTotal = d[selectedFilter.type] === selectedFilter.value;
+                    }
+                }
+
+                if (!includeInTotal) return;
+
+                let inCategory = false;
+                const field = currentLayer === 'net_zero' ? 'net_zero_status_clean' : currentLayer;
+                const value = d[field];
+
+                if (currentLayer === 'paris') {
+                    inCategory = value === 'Joined Agreement' || value === 'Signed Agreement';
+                } else if (currentLayer === 'ndc') {
+                    inCategory = value === '2025 NDC (Third NDC)';
+                } else if (currentLayer === 'lts') {
+                    inCategory = value === 'Yes';
+                } else if (currentLayer === 'net_zero') {
+                    inCategory = value === 'In Law' || value === 'In Policy Document' || value === 'Announced' || value === 'Achieved';
+                }
+
+                if (inCategory) {
+                    categoryCount++;
+                    const ghg = parseFloat(String(d.ghg_emissions).replace(/,/g, ''));
+                    if (!isNaN(ghg)) categoryGHG += ghg;
+                }
+            });
+
+            const percent = totalGHG > 0 ? ((categoryGHG / totalGHG) * 100).toFixed(1) : 0;
+
+            const layerNames = {
+                'paris': 'Paris Agreement',
+                'ndc': 'Nationally Determined Contributions (NDCs)',
+                'lts': 'Long Term Strategy (LTS)',
+                'net_zero': 'Net-Zero target'
+            };
+
+            const layerSubtitles = {
+                'paris': `${categoryCount} nations have committed to the 1.5°C limit`,
+                'ndc': `${categoryCount} nations updated their NDCs in 2025`,
+                'lts': `Only ${categoryCount} out of ${totalCount} nations have submitted long-term strategies`,
+                'net_zero': `Only ${categoryCount} out of ${totalCount} nations have a net-zero emission target`
+            };
+
+            document.getElementById('kpiTitle').textContent = layerNames[currentLayer];
+            document.getElementById('kpiSubtitle').textContent = layerSubtitles[currentLayer];
+            document.getElementById('kpiNations').textContent = categoryCount;
+            document.getElementById('kpiPercent').textContent = percent + '%';
+        }
+
+        function handleGroupByChange() {
+            currentGroupBy = document.getElementById('groupBySelect').value;
+            selectedFilter = null;
+            updateSubOptions();
+        }
+
+        function updateSubOptions() {
+            const container = document.getElementById('subOptions');
+
+            if (currentGroupBy === 'all') {
+                container.innerHTML = '';
+                selectedFilter = null;
+                drawMap();
+                updateCharts();
+                updateKPIHeader();
+            } else if (currentGroupBy === 'region') {
+                const regions = new Set();
+                Object.values(countryData).forEach(d => {
+                    if (d.region) regions.add(d.region);
+                });
+
+                container.innerHTML = `
+                    <div class="radio-group">
+                        ${Array.from(regions).sort().map(r => `
+                            <div class="radio-option">
+                                <input type="radio" id="region-${r.replace(/[^a-zA-Z0-9]/g, '')}" name="filteroption" value="${r}">
+                                <label for="region-${r.replace(/[^a-zA-Z0-9]/g, '')}">${r}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                document.querySelectorAll('input[name="filteroption"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.checked) {
+                            selectedFilter = { type: 'region', value: this.value };
+                            drawMap();
+                            updateCharts();
+                            updateKPIHeader();
+                        }
+                    });
+                });
+            } else if (currentGroupBy === 'income_group') {
+                const incomes = new Set();
+                Object.values(countryData).forEach(d => {
+                    if (d.income_group) incomes.add(d.income_group);
+                });
+
+                container.innerHTML = `
+                    <div class="radio-group">
+                        ${Array.from(incomes).sort().map(inc => `
+                            <div class="radio-option">
+                                <input type="radio" id="income-${inc.replace(/[^a-zA-Z0-9]/g, '')}" name="filteroption" value="${inc}">
+                                <label for="income-${inc.replace(/[^a-zA-Z0-9]/g, '')}">${inc}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                document.querySelectorAll('input[name="filteroption"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.checked) {
+                            selectedFilter = { type: 'income_group', value: this.value };
+                            drawMap();
+                            updateCharts();
+                            updateKPIHeader();
+                        }
+                    });
+                });
+            } else if (currentGroupBy === 'economic_block') {
+                const blocks = ['G20', 'G7', 'BRICS', 'OECD', 'NATO', 'EU', 'OPEC', 'CIS'];
+
+                container.innerHTML = `
+                    <div class="radio-group">
+                        ${blocks.map(block => `
+                            <div class="radio-option">
+                                <input type="radio" id="block-${block}" name="filteroption" value="${block}">
+                                <label for="block-${block}">${block}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                document.querySelectorAll('input[name="filteroption"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.checked) {
+                            selectedFilter = { type: 'economic_block', value: this.value };
+                            drawMap();
+                            updateCharts();
+                            updateKPIHeader();
+                        }
+                    });
+                });
+            }
+        }
+
+        Promise.all([
+            d3.csv('climate-promise-db.csv'),
+            d3.csv('merged_emissions.csv'),
+            d3.json('countries_map.geojson')
+        ]).then(([csvData, emissions, geoDataLoaded]) => {
+            // Load country promise data
+            csvData.forEach(d => {
+                const countryName = d.Country.trim();
+                d.net_zero_status_clean = cleanNetZeroStatus(d.net_zero_goal || d.net_zero_goals || d.net_zero_status);
+                countryData[countryName] = d;
+            });
+
+            // Load emissions data (filter 2000-2023)
+            emissionsData = emissions.filter(d => {
+                const year = parseInt(d.year);
+                return year >= 2000 && year <= 2023;
+            }).map(d => ({
+                entity: d.entity,
+                code: d.code,
+                year: parseInt(d.year),
+                annual_ghg: parseFloat(d.annual_ghg),
+                percapita_ghg: parseFloat(d.percapita_ghg),
+                annual_ghg_billion: parseFloat(d.annual_ghg_billion)
+            }));
+
+            geoData = geoDataLoaded;
+
+            console.log('Loaded data for', Object.keys(countryData).length, 'countries');
+            console.log('Loaded emissions data:', emissionsData.length, 'records');
+
+            drawMap();
+            updateLegend();
+            updateCharts();
+            updateKPIHeader();
+
+            // Set China as default selected country
+            const chinaData = countryData['China'];
+            if (chinaData) {
+                hoveredCountry = 'China';
+                updateCountryInfo(chinaData);
+                highlightScatterDot('China');
+            }
+        });
+
+        function getCountryData(featureName) {
+            const mappedName = nameMapping[featureName] || featureName;
+            return countryData[mappedName] || countryData[featureName];
+        }
+
+        function getColor(feature) {
+            const data = getCountryData(feature.properties.NAME_LONG);
+            if (!data) return colorSchemes[currentLayer]['default'];
+
+            if (selectedFilter) {
+                if (selectedFilter.type === 'economic_block') {
+                    // Check if country is member of economic block (Yes/1)
+                    const blockValue = data[selectedFilter.value];
+                    if (!blockValue || blockValue === 'No' || blockValue === '0') {
+                        return '#ecf0f1';
+                    }
+                } else {
+                    if (data[selectedFilter.type] !== selectedFilter.value) {
+                        return '#ecf0f1';
+                    }
+                }
+            }
+
+            // Use net_zero_status_clean for net_zero layer
+            const field = currentLayer === 'net_zero' ? 'net_zero_status_clean' : currentLayer;
+            const value = data[field];
+            return colorSchemes[currentLayer][value] || colorSchemes[currentLayer]['default'];
+        }
+
+        function drawMap() {
+            g.selectAll("*").remove();
+
+            g.selectAll("path.country")
+                .data(geoData.features)
+                .enter()
+                .append("path")
+                .attr("class", "country")
+                .attr("d", path)
+                .attr("fill", d => getColor(d))
+                .on("mouseover", function(event, d) {
+                    const data = getCountryData(d.properties.NAME_LONG);
+                    if (data) {
+                        hoveredCountry = data.Country;
+                        highlightScatterDot(data.Country);
+                        updateCountryInfo(data);
+
+                        const tooltipWidth = 150;
+                        const tooltipHeight = 30;
+                        let left = event.pageX + 10;
+                        let top = event.pageY - 10;
+
+                        // Keep tooltip within viewport bounds
+                        if (left + tooltipWidth > window.innerWidth) {
+                            left = event.pageX - tooltipWidth - 10;
+                        }
+                        if (top + tooltipHeight > window.innerHeight) {
+                            top = event.pageY - tooltipHeight - 10;
+                        }
+                        if (left < 0) left = 10;
+                        if (top < 0) top = 10;
+
+                        countryLabel
+                            .classed("show", true)
+                            .style("left", left + "px")
+                            .style("top", top + "px")
+                            .text(data.Country);
+                    }
+                })
+                .on("mousemove", function(event) {
+                    const tooltipWidth = 150;
+                    const tooltipHeight = 30;
+                    let left = event.pageX + 10;
+                    let top = event.pageY - 10;
+
+                    // Keep tooltip within viewport bounds
+                    if (left + tooltipWidth > window.innerWidth) {
+                        left = event.pageX - tooltipWidth - 10;
+                    }
+                    if (top + tooltipHeight > window.innerHeight) {
+                        top = event.pageY - tooltipHeight - 10;
+                    }
+                    if (left < 0) left = 10;
+                    if (top < 0) top = 10;
+
+                    countryLabel
+                        .style("left", left + "px")
+                        .style("top", top + "px");
+                })
+                .on("mouseout", function() {
+                    hoveredCountry = null;
+                    unhighlightScatterDot();
+                    countryLabel.classed("show", false);
+                });
+
+            if (currentBubbleMetric !== 'none') {
+                drawBubbles();
+            }
+        }
+
+        function drawBubbles() {
+            g.selectAll("circle.bubble").remove();
+            if (!geoData || currentBubbleMetric === 'none') return;
+
+            geoData.features.forEach(feature => {
+                const data = getCountryData(feature.properties.NAME_LONG);
+                if (!data) return;
+
+                let value = parseFloat(data[currentBubbleMetric]);
+                if (isNaN(value) || value <= 0) return;
+
+                const centroid = path.centroid(feature);
+                if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+
+                let radius;
+                let displayValue = value;
+                if (currentBubbleMetric === 'ghg_emissions') {
+                    const cleanValue = String(data[currentBubbleMetric]).replace(/,/g, '');
+                    value = parseFloat(cleanValue);
+                    displayValue = (value / 1000).toFixed(2); // Convert to billion t
+                    radius = Math.sqrt(value) * 0.3;
+                } else if (currentBubbleMetric === 'ghg_per_capita') {
+                    radius = value * 1;
+                    displayValue = value.toFixed(2);
+                } else {
+                    radius = value * 12;
+                    displayValue = value.toFixed(2);
+                }
+
+                radius = Math.min(radius, 25);
+                radius = Math.max(radius, 1.5);
+
+                g.append("circle")
+                    .attr("class", `bubble ${currentBubbleMetric}`)
+                    .attr("cx", centroid[0])
+                    .attr("cy", centroid[1])
+                    .attr("r", 0)
+                    .on("mouseover", function(event) {
+                        countryLabel
+                            .classed("show", true)
+                            .style("left", (event.pageX + 5) + "px")
+                            .style("top", (event.pageY - 5) + "px")
+                            .text(`${data.Country}: ${displayValue}`);
+                    })
+                    .on("mousemove", function(event) {
+                        countryLabel
+                            .style("left", (event.pageX + 5) + "px")
+                            .style("top", (event.pageY - 5) + "px");
+                    })
+                    .on("mouseout", function() {
+                        countryLabel.classed("show", false);
+                    })
+                    .transition()
+                    .duration(500)
+                    .attr("r", radius);
+            });
+        }
+
+        function updateLegend() {
+            const legendContent = document.getElementById('legendContent');
+            legendContent.innerHTML = '';
+
+            // Center legend for LTS
+            if (currentLayer === 'lts') {
+                legendContent.style.left = '50%';
+                legendContent.style.transform = 'translateX(-50%)';
+                legendContent.style.justifyContent = 'center';
+            } else {
+                legendContent.style.left = '20px';
+                legendContent.style.transform = 'none';
+                legendContent.style.justifyContent = 'flex-start';
+            }
+
+            const scheme = colorSchemes[currentLayer];
+
+            // Label mapping for LTS
+            const labelMapping = {
+                'Yes': 'Submitted',
+                'No': 'Not Submitted'
+            };
+
+            for (const [key, color] of Object.entries(scheme)) {
+                if (key === 'default') continue;
+
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                const displayLabel = (currentLayer === 'lts' && labelMapping[key]) ? labelMapping[key] : key;
+                item.innerHTML = `
+                    <div class="legend-color" style="background-color: ${color}"></div>
+                    <span>${displayLabel}</span>
+                `;
+                legendContent.appendChild(item);
+            }
+        }
+
+        function updateCharts() {
+            createDivergingChart();
+            createScatterPlot();
+        }
+
+        function createDivergingChart() {
+            const container = d3.select('#stacked-bar-chart');
+            container.selectAll('*').remove();
+
+            const colorField = currentLayer === 'net_zero' ? 'net_zero_status_clean' : currentLayer;
+            const colorScheme = currentLayer === 'net_zero' ? colorSchemes.net_zero_status_clean : colorSchemes[currentLayer];
+
+            const stats = {};
+            const ghgByCategory = {};
+
+            Object.values(countryData).forEach(d => {
+                // Apply filter
+                if (selectedFilter) {
+                    if (selectedFilter.type === 'economic_block') {
+                        const blockValue = d[selectedFilter.value];
+                        if (!blockValue || blockValue === 'No' || blockValue === '0') return;
+                    } else {
+                        if (d[selectedFilter.type] !== selectedFilter.value) return;
+                    }
+                }
+
+                const value = d[colorField];
+                if (!value || value === '#N/A') return;
+
+                if (!stats[value]) {
+                    stats[value] = 0;
+                    ghgByCategory[value] = 0;
+                }
+                stats[value]++;
+
+                const ghg = parseFloat(String(d.ghg_emissions).replace(/,/g, ''));
+                if (!isNaN(ghg)) {
+                    ghgByCategory[value] += ghg;
+                }
+            });
+
+            const totalGHG = Object.values(ghgByCategory).reduce((sum, val) => sum + val, 0);
+
+            const data = Object.keys(stats).map(key => ({
+                category: key,
+                count: stats[key],
+                ghg: ghgByCategory[key],
+                ghgPercent: totalGHG > 0 ? (ghgByCategory[key] / totalGHG) * 100 : 0
+            }));
+
+            // Define order for each layer to match legend
+            const categoryOrder = {
+                'paris': ['Joined Agreement', 'Signed Agreement', 'Withdrawn Agreement', 'No'],
+                'ndc': [
+                    '2025 NDC (Third NDC)',
+                    '2025 NDC (Second NDC)',
+                    '2020 NDC (Second NDC)',
+                    '2020 NDC (Updated First NDC)',
+                    'Only First NDC',
+                    'No Document Submitted (Only INDC)'
+                ],
+                'lts': ['Yes', 'No'],
+                'net_zero': ['In Law', 'In Policy Document', 'Announced', 'No', 'Achieved']
+            };
+
+            // Sort data based on predefined order
+            if (categoryOrder[currentLayer]) {
+                const order = categoryOrder[currentLayer];
+                data.sort((a, b) => {
+                    const indexA = order.indexOf(a.category);
+                    const indexB = order.indexOf(b.category);
+                    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+                });
+            }
+
+            if (data.length === 0) return;
+
+            const section = container.append('div')
+                .attr('class', 'chart-section');
+
+            const layerTitles = {
+                'paris': 'Paris',
+                'ndc': 'NDCs',
+                'lts': 'LTS',
+                'net_zero': 'Net Zero'
+            };
+
+            let titleText = `Share of emissions (${layerTitles[currentLayer]}):`;
+
+            if (selectedFilter) {
+                if (selectedFilter.type === 'economic_block') {
+                    titleText = `Share of emissions of ${selectedFilter.value} (${layerTitles[currentLayer]}):`;
+                } else {
+                    titleText = `Share of emissions of ${selectedFilter.value} (${layerTitles[currentLayer]}):`;
+                }
+            }
+
+            section.append('h3')
+                .style('text-align', 'right')
+                .text(titleText);
+
+            const chartWidth = mapWidth - 40; // Map width minus padding
+            const chartHeight = 55;
+            const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+            const innerWidth = chartWidth - margin.left - margin.right;
+            const innerHeight = chartHeight - margin.top - margin.bottom;
+
+            const chartSvg = section.append('svg')
+                .attr('width', chartWidth)
+                .attr('height', chartHeight);
+
+            const chartG = chartSvg.append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Calculate cumulative percentages for stacking
+            let cumulative = 0;
+            const stackedData = data.map(d => {
+                const start = cumulative;
+                cumulative += d.ghgPercent;
+                return { ...d, start: start, end: cumulative };
+            });
+
+            const xScale = d3.scaleLinear()
+                .domain([0, 100])
+                .range([0, innerWidth]);
+
+            // Draw stacked bar
+            chartG.selectAll('.bar-segment')
+                .data(stackedData)
+                .enter()
+                .append('rect')
+                .attr('class', 'bar-segment')
+                .attr('x', d => xScale(d.start))
+                .attr('y', 0)
+                .attr('width', d => xScale(d.end) - xScale(d.start))
+                .attr('height', 60)
+                .attr('fill', d => colorScheme[d.category] || '#95a5a6')
+                .attr('rx', 0);
+
+            // Add tooltips to bar segments
+            chartG.selectAll('.bar-segment')
+                .append('title')
+                .text(d => `${d.category}: ${d.ghgPercent.toFixed(1)}% (${d.count} nations)`);
+
+            // Add labels for larger segments
+            chartG.selectAll('.bar-label')
+                .data(stackedData.filter(d => d.ghgPercent > 8))
+                .enter()
+                .append('text')
+                .attr('x', d => xScale((d.start + d.end) / 2))
+                .attr('y', 30)
+                .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'middle')
+                .attr('fill', 'white')
+                .attr('font-size', '11px')
+                .attr('font-weight', '600')
+                .text(d => d.ghgPercent.toFixed(0) + '%');
+
+        }
+
+        function createScatterPlot() {
+            const container = d3.select('#scatter-chart');
+            container.selectAll('*').remove();
+
+            // Group emissions data by country
+            const countriesEmissions = d3.group(emissionsData, d => d.entity);
+
+            // Filter countries based on selection
+            const filteredCountries = new Map();
+            countriesEmissions.forEach((values, countryName) => {
+                // Check if country should be included based on filter
+                let includeCountry = true;
+
+                if (selectedFilter) {
+                    const countryInfo = Object.values(countryData).find(d =>
+                        d.Country === countryName ||
+                        nameMapping[countryName] === d.Country ||
+                        d.Country === nameMapping[countryName]
+                    );
+
+                    if (countryInfo) {
+                        if (selectedFilter.type === 'economic_block') {
+                            const blockValue = countryInfo[selectedFilter.value];
+                            includeCountry = blockValue && blockValue !== 'No' && blockValue !== '0';
+                        } else {
+                            includeCountry = countryInfo[selectedFilter.type] === selectedFilter.value;
+                        }
+                    } else {
+                        includeCountry = false;
+                    }
+                }
+
+                if (includeCountry) {
+                    filteredCountries.set(countryName, values);
+                }
+            });
+
+            // Create GHG Emissions chart (in billions)
+            createTimeSeriesChart(
+                container,
+                'Greenhouse gas emissions, 2020 - 2023',
+                'annual_ghg_billion',
+                filteredCountries,
+                 'Billion tonnes'
+            );
+
+            // Create Per Capita GHG chart
+            createTimeSeriesChart(
+                container,
+                'Per Capita greenhouse gas emissions, 2020 - 2023',
+                'percapita_ghg',
+                filteredCountries,
+                'Tonnes per capita'
+            );
+        }
+
+        function createTimeSeriesChart(container, title, metric, countriesEmissions, yAxisLabel) {
+            const section = container.append('div')
+                .attr('class', 'chart-section');
+
+            section.append('h3')
+                .text(title);
+
+            const chartWidth = window.innerWidth * 0.25 - 60;
+            const chartHeight = 310;
+            const margin = { top: 5, right: 5, bottom: 20, left: 60 };
+            const innerWidth = chartWidth - margin.left - margin.right;
+            const innerHeight = chartHeight - margin.top - margin.bottom;
+
+            const chartSvg = section.append('svg')
+                .attr('width', chartWidth)
+                .attr('height', chartHeight);
+
+            const chartG = chartSvg.append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Scales
+            const xScale = d3.scaleLinear()
+                .domain([2000, 2023])
+                .range([0, innerWidth]);
+
+            // Get all values for this metric to set y scale domain (based on filtered countries)
+            const allValues = Array.from(countriesEmissions.values())
+                .flat()
+                .map(d => d[metric])
+                .filter(v => !isNaN(v) && v > 0);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(allValues)])
+                .range([innerHeight, 0]);
+
+            // Line generator with curve smoothing
+            const line = d3.line()
+                .x(d => xScale(d.year))
+                .y(d => yScale(d[metric]))
+                .defined(d => !isNaN(d[metric]) && d[metric] > 0)
+                .curve(d3.curveMonotoneX); // Smooth curve that preserves monotonicity
+
+            // Grid lines
+            chartG.append('g')
+                .attr('class', 'grid')
+                .selectAll('line')
+                .data(yScale.ticks(5))
+                .enter()
+                .append('line')
+                .attr('class', 'grid-line')
+                .attr('x1', 0)
+                .attr('x2', innerWidth)
+                .attr('y1', d => yScale(d))
+                .attr('y2', d => yScale(d));
+
+            // Axes
+            chartG.append('g')
+                .attr('class', 'axis')
+                .attr('transform', `translate(0,${innerHeight})`)
+                .call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d')))
+                .selectAll('text')
+                .style('font-size', '11px');
+
+            // Y-axis without line, only labels
+            const yAxis = chartG.append('g')
+                .attr('class', 'axis')
+                .call(d3.axisLeft(yScale).ticks(5).tickFormat(d => {
+    if (d >= 1000) return Math.round(d / 1000) + 'k';  
+    return d % 1 === 0 ? d : d.toFixed(1);  
+}));
+
+            // Remove the axis line and tick marks
+            yAxis.select('.domain').remove();
+            yAxis.selectAll('.tick line').remove();
+            yAxis.selectAll('text').style('font-size', '11px');
+
+            // Axis labels
+            chartSvg.append('text')
+                .attr('x', margin.left + innerWidth / 2)
+                .attr('y', chartHeight - 10)
+                .attr('text-anchor', 'middle')
+                .attr('font-size', '12px')
+                .attr('fill', '#666')
+                .attr('font-weight', '600')
+
+            chartSvg.append('text')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -(margin.top + innerHeight / 2))
+                .attr('y', 15)
+                .attr('text-anchor', 'middle')
+                .attr('font-size', '12px')
+                .attr('fill', '#666')
+                .attr('font-weight', '600')
+                .text(yAxisLabel);
+
+            // Draw lines for all countries
+            countriesEmissions.forEach((countryValues, countryName) => {
+                chartG.append('path')
+                    .datum(countryValues)
+                    .attr('class', 'country-line')
+                    .attr('data-country', countryName)
+                    .attr('data-metric', metric)
+                    .attr('d', line)
+                    .each(function() {
+                        // Store scales and data for later use
+                        d3.select(this).property('__xScale', xScale);
+                        d3.select(this).property('__yScale', yScale);
+                        d3.select(this).property('__metric', metric);
+                    });
+            });
+        }
+
+        function highlightScatterDot(countryName) {
+            // Remove any existing endpoint dots
+            d3.selectAll('.endpoint-dot').remove();
+
+            d3.selectAll('.country-line')
+                .classed('highlighted', function() {
+                    const isHighlighted = d3.select(this).attr('data-country') === countryName;
+
+                    if (isHighlighted) {
+                        // Bring highlighted line to front
+                        this.parentNode.appendChild(this);
+
+                        // Add endpoint dot
+                        const lineElement = d3.select(this);
+                        const lineData = lineElement.datum();
+                        const xScale = lineElement.property('__xScale');
+                        const yScale = lineElement.property('__yScale');
+                        const metric = lineElement.property('__metric');
+
+                        if (lineData && lineData.length > 0 && xScale && yScale) {
+                            const lastPoint = lineData[lineData.length - 1];
+                            const parent = d3.select(this.parentNode);
+
+                            parent.append('circle')
+                                .attr('class', 'endpoint-dot')
+                                .attr('cx', xScale(lastPoint.year))
+                                .attr('cy', yScale(lastPoint[metric]))
+                                .attr('r', 4);
+                        }
+                    }
+
+                    return isHighlighted;
+                });
+        }
+
+        function unhighlightScatterDot() {
+            d3.selectAll('.country-line')
+                .classed('highlighted', false);
+            d3.selectAll('.endpoint-dot').remove();
+        }
+
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId + '-content');
+            const header = content.previousElementSibling;
+            content.classList.toggle('hidden');
+            header.classList.toggle('collapsed');
+        }
+
+        document.querySelectorAll('input[name="emissions"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Uncheck all other checkboxes
+                    document.querySelectorAll('input[name="emissions"]').forEach(cb => {
+                        if (cb !== this) cb.checked = false;
+                    });
+                    currentBubbleMetric = this.value;
+                } else {
+                    currentBubbleMetric = 'none';
+                }
+                drawBubbles();
+                createScatterPlot();
+            });
+        });
+    </script>
+</body>
+</html>
