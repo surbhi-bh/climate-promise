@@ -1,0 +1,198 @@
+ISO,Country,G20,G7,BRICS,OECD,NATO,EU,OPEC,CIS
+AFG,Afghanistan,No,No,No,No,No,No,No,No
+ALB,Albania,No,No,No,No,Yes,No,No,No
+DZA,Algeria,No,No,No,No,No,No,Yes,No
+AND,Andorra,No,No,No,No,No,Yes,No,No
+AGO,Angola,No,No,No,No,No,No,Yes,No
+ATG,Antigua and Barbuda,No,No,No,No,No,No,No,No
+ARG,Argentina,Yes,No,Yes,No,No,No,No,No
+ARM,Armenia,No,No,No,No,No,No,No,Yes
+AUS,Australia,Yes,No,No,Yes,No,No,No,No
+AUT,Austria,No,No,No,Yes,No,Yes,No,No
+AZE,Azerbaijan,No,No,No,No,No,No,No,Yes
+BHS,Bahamas,No,No,No,No,No,No,No,No
+BHR,Bahrain,No,No,No,No,No,No,Yes,No
+BGD,Bangladesh,No,No,No,No,No,No,No,No
+BRB,Barbados,No,No,No,No,No,No,No,No
+BLR,Belarus,No,No,No,No,No,No,No,Yes
+BEL,Belgium,No,No,No,Yes,Yes,Yes,No,No
+BLZ,Belize,No,No,No,No,No,No,No,No
+BEN,Benin,No,No,No,No,No,No,No,No
+BTN,Bhutan,No,No,No,No,No,No,No,No
+BOL,Bolivia,No,No,Yes,No,No,No,No,No
+BIH,Bosnia and Herzegovina,No,No,No,No,Yes,No,No,No
+BWA,Botswana,No,No,No,No,No,No,No,No
+BRA,Brazil,Yes,No,Yes,No,No,No,No,No
+BRN,Brunei,No,No,No,No,No,No,Yes,No
+BGR,Bulgaria,No,No,No,Yes,Yes,Yes,No,No
+BFA,Burkina Faso,No,No,No,No,No,No,No,No
+BDI,Burundi,No,No,No,No,No,No,No,No
+CPV,Cabo Verde,No,No,No,No,No,No,No,No
+KHM,Cambodia,No,No,No,No,No,No,No,No
+CMR,Cameroon,No,No,No,No,No,No,Yes,No
+CAN,Canada,Yes,Yes,No,Yes,Yes,No,No,No
+CAF,Central African Republic,No,No,No,No,No,No,No,No
+TCD,Chad,No,No,No,No,No,No,Yes,No
+CHL,Chile,No,No,No,Yes,No,No,No,No
+CHN,China,Yes,No,Yes,No,No,No,No,No
+COL,Colombia,No,No,No,No,No,No,No,No
+COM,Comoros,No,No,No,No,No,No,No,No
+COG,Congo,No,No,No,No,No,No,Yes,No
+COK,Cook Islands,No,No,No,No,No,No,No,No
+CRI,Costa Rica,No,No,No,No,No,No,No,No
+CIV,Côte d'Ivoire,No,No,No,No,No,No,No,No
+HRV,Croatia,No,No,No,Yes,Yes,Yes,No,No
+CUB,Cuba,No,No,No,No,No,No,No,No
+CYP,Cyprus,No,No,No,Yes,No,Yes,No,No
+CZE,Czech Republic,No,No,No,Yes,Yes,Yes,No,No
+COD,Democratic Republic of the Congo,No,No,No,No,No,No,No,No
+DNK,Denmark,No,No,No,Yes,Yes,Yes,No,No
+DJI,Djibouti,No,No,No,No,No,No,No,No
+DMA,Dominica,No,No,No,No,No,No,No,No
+DOM,Dominican Republic,No,No,No,No,No,No,No,No
+TLS,East Timor,No,No,No,No,No,No,No,No
+ECU,Ecuador,No,No,No,No,No,No,Yes,No
+EGY,Egypt,Yes,No,No,No,No,No,No,No
+SLV,El Salvador,No,No,No,No,No,No,No,No
+GNQ,Equatorial Guinea,No,No,No,No,No,No,Yes,No
+ERI,Eritrea,No,No,No,No,No,No,No,No
+EST,Estonia,No,No,No,Yes,Yes,Yes,No,No
+SWZ,Eswatini,No,No,No,No,No,No,No,No
+ETH,Ethiopia,No,No,No,No,No,No,No,No
+FJI,Fiji,No,No,No,No,No,No,No,No
+FIN,Finland,No,No,No,Yes,Yes,Yes,No,No
+FRA,France,Yes,Yes,No,Yes,Yes,Yes,No,No
+GAB,Gabon,No,No,No,No,No,No,Yes,No
+GMB,Gambia,No,No,No,No,No,No,No,No
+GEO,Georgia,No,No,No,No,No,No,No,Yes
+DEU,Germany,Yes,Yes,No,Yes,Yes,Yes,No,No
+GHA,Ghana,No,No,No,No,No,No,No,No
+GRC,Greece,No,No,No,Yes,Yes,Yes,No,No
+GRD,Grenada,No,No,No,No,No,No,No,No
+GTM,Guatemala,No,No,No,No,No,No,No,No
+GIN,Guinea,No,No,No,No,No,No,No,No
+GNB,Guinea-Bissau,No,No,No,No,No,No,No,No
+GUY,Guyana,No,No,Yes,No,No,No,No,No
+HTI,Haiti,No,No,No,No,No,No,No,No
+HND,Honduras,No,No,No,No,No,No,No,No
+HUN,Hungary,No,No,No,Yes,Yes,Yes,No,No
+ISL,Iceland,No,No,No,Yes,Yes,No,No,No
+IND,India,Yes,No,Yes,No,No,No,No,No
+IDN,Indonesia,Yes,No,No,No,No,No,No,No
+IRN,Iran,No,No,No,No,No,No,Yes,No
+IRQ,Iraq,No,No,No,No,No,No,Yes,No
+IRL,Ireland,No,No,No,Yes,No,Yes,No,No
+ISR,Israel,No,No,No,No,No,No,No,No
+ITA,Italy,Yes,Yes,No,Yes,Yes,Yes,No,No
+JAM,Jamaica,No,No,No,No,No,No,No,No
+JPN,Japan,Yes,Yes,No,Yes,No,No,No,No
+JOR,Jordan,No,No,No,No,No,No,No,No
+KAZ,Kazakhstan,No,No,No,No,No,No,No,Yes
+KEN,Kenya,No,No,No,No,No,No,No,No
+KIR,Kiribati,No,No,No,No,No,No,No,No
+KWT,Kuwait,No,No,No,No,No,No,Yes,No
+KGZ,Kyrgyzstan,No,No,No,No,No,No,No,Yes
+LAO,Laos,No,No,No,No,No,No,No,No
+LVA,Latvia,No,No,No,Yes,Yes,Yes,No,No
+LBN,Lebanon,No,No,No,No,No,No,No,No
+LSO,Lesotho,No,No,No,No,No,No,No,No
+LBR,Liberia,No,No,No,No,No,No,No,No
+LBY,Libya,No,No,No,No,No,No,Yes,No
+LIE,Liechtenstein,No,No,No,No,No,No,No,No
+LTU,Lithuania,No,No,No,Yes,Yes,Yes,No,No
+LUX,Luxembourg,No,No,No,Yes,No,Yes,No,No
+MDG,Madagascar,No,No,No,No,No,No,No,No
+MWI,Malawi,No,No,No,No,No,No,No,No
+MYS,Malaysia,No,No,No,No,No,No,No,No
+MDV,Maldives,No,No,No,No,No,No,No,No
+MLI,Mali,No,No,No,No,No,No,No,No
+MLT,Malta,No,No,No,Yes,No,Yes,No,No
+MHL,Marshall Islands,No,No,No,No,No,No,No,No
+MRT,Mauritania,No,No,No,No,No,No,Yes,No
+MUS,Mauritius,No,No,No,No,No,No,No,No
+MEX,Mexico,Yes,No,No,No,No,No,No,No
+FSM,Micronesia,No,No,No,No,No,No,No,No
+MDA,Moldova,No,No,No,No,No,No,No,Yes
+MCO,Monaco,No,No,No,No,No,Yes,No,No
+MNG,Mongolia,No,No,No,No,No,No,No,No
+MNE,Montenegro,No,No,No,No,Yes,No,No,No
+MAR,Morocco,No,No,No,No,No,No,No,No
+MOZ,Mozambique,No,No,No,No,No,No,No,No
+MMR,Myanmar,No,No,No,No,No,No,No,No
+NAM,Namibia,No,No,No,No,No,No,No,No
+NRU,Nauru,No,No,No,No,No,No,No,No
+NPL,Nepal,No,No,No,No,No,No,No,No
+NLD,Netherlands,No,No,No,Yes,Yes,Yes,No,No
+NZL,New Zealand,Yes,No,No,Yes,No,No,No,No
+NIC,Nicaragua,No,No,No,No,No,No,No,No
+NER,Niger,No,No,No,No,No,No,Yes,No
+NGA,Nigeria,No,No,No,No,No,No,Yes,No
+NIU,Niue,No,No,No,No,No,No,No,No
+PRK,North Korea,No,No,No,No,No,No,No,No
+MKD,North Macedonia,No,No,No,No,Yes,No,No,No
+NOR,Norway,No,No,No,Yes,Yes,No,No,No
+OMN,Oman,No,No,No,No,No,No,Yes,No
+PAK,Pakistan,No,No,No,No,No,No,No,No
+PLW,Palau,No,No,No,No,No,No,No,No
+PSE,Palestine,No,No,No,No,No,No,No,No
+PAN,Panama,No,No,No,No,No,No,No,No
+PNG,Papua New Guinea,No,No,No,No,No,No,No,No
+PRY,Paraguay,No,No,Yes,No,No,No,No,No
+PER,Peru,No,No,No,No,No,No,No,No
+PHL,Philippines,No,No,No,No,No,No,No,No
+POL,Poland,No,No,No,Yes,Yes,Yes,No,No
+PRT,Portugal,No,No,No,Yes,Yes,Yes,No,No
+QAT,Qatar,No,No,No,No,No,No,Yes,No
+ROU,Romania,No,No,No,Yes,Yes,Yes,No,No
+RUS,Russia,Yes,No,Yes,No,No,No,No,Yes
+RWA,Rwanda,No,No,No,No,No,No,No,No
+KNA,Saint Kitts and Nevis,No,No,No,No,No,No,No,No
+LCA,Saint Lucia,No,No,No,No,No,No,No,No
+VCT,Saint Vincent and the Grenadines,No,No,No,No,No,No,No,No
+WSM,Samoa,No,No,No,No,No,No,No,No
+SMR,San Marino,No,No,No,No,No,Yes,No,No
+STP,São Tomé and Príncipe,No,No,No,No,No,No,No,No
+SAU,Saudi Arabia,Yes,No,No,No,No,No,Yes,No
+SEN,Senegal,No,No,No,No,No,No,No,No
+SRB,Serbia,No,No,No,No,Yes,No,No,No
+SYC,Seychelles,No,No,No,No,No,No,No,No
+SLE,Sierra Leone,No,No,No,No,No,No,No,No
+SGP,Singapore,No,No,No,No,No,No,No,No
+SVK,Slovakia,No,No,No,Yes,Yes,Yes,No,No
+SVN,Slovenia,No,No,No,Yes,Yes,Yes,No,No
+SLB,Solomon Islands,No,No,No,No,No,No,No,No
+SOM,Somalia,No,No,No,No,No,No,No,No
+ZAF,South Africa,Yes,No,Yes,No,No,No,No,No
+KOR,South Korea,Yes,No,No,Yes,No,No,No,No
+SSD,South Sudan,No,No,No,No,No,No,No,No
+ESP,Spain,No,No,No,Yes,Yes,Yes,No,No
+LKA,Sri Lanka,No,No,No,No,No,No,No,No
+SDN,Sudan,No,No,No,No,No,No,Yes,No
+SUR,Suriname,No,No,Yes,No,No,No,No,No
+SWE,Sweden,No,No,No,Yes,Yes,Yes,No,No
+CHE,Switzerland,No,No,No,Yes,No,No,No,No
+SYR,Syria,No,No,No,No,No,No,No,No
+TJK,Tajikistan,No,No,No,No,No,No,No,Yes
+TZA,Tanzania,No,No,No,No,No,No,No,No
+THA,Thailand,No,No,No,No,No,No,No,No
+TGO,Togo,No,No,No,No,No,No,No,No
+TON,Tonga,No,No,No,No,No,No,No,No
+TTO,Trinidad and Tobago,No,No,No,No,No,No,No,No
+TUN,Tunisia,No,No,No,No,No,No,Yes,No
+TUR,Turkey,Yes,No,No,No,Yes,No,No,No
+TKM,Turkmenistan,No,No,No,No,No,No,Yes,No
+TUV,Tuvalu,No,No,No,No,No,No,No,No
+UGA,Uganda,No,No,No,No,No,No,No,No
+UKR,Ukraine,No,No,No,No,No,No,No,Yes
+ARE,United Arab Emirates,Yes,No,No,No,No,No,Yes,No
+GBR,United Kingdom,Yes,Yes,No,Yes,Yes,Yes,No,No
+USA,United States,Yes,Yes,No,Yes,Yes,No,No,No
+URY,Uruguay,No,No,Yes,No,No,No,No,No
+UZB,Uzbekistan,No,No,No,No,No,No,No,Yes
+VUT,Vanuatu,No,No,No,No,No,No,No,No
+VAT,Vatican City,No,No,No,No,No,Yes,No,No
+VEN,Venezuela,No,No,Yes,No,No,No,Yes,No
+VNM,Vietnam,No,No,No,No,No,No,No,No
+YEM,Yemen,No,No,No,No,No,No,Yes,No
+ZMB,Zambia,No,No,No,No,No,No,No,No
+ZWE,Zimbabwe,No,No,No,No,No,No,No,No
