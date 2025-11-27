@@ -476,35 +476,7 @@
             color: #1a1a1a;
             margin-top: 20px;
             margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chart-toggle {
-            display: flex;
-            gap: 8px;
-            background: #e0e0e0;
-            padding: 2px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .chart-toggle-btn {
-            padding: 4px 10px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-radius: 3px;
-            font-weight: 500;
-            color: #666;
-            transition: all 0.2s;
-        }
-
-        .chart-toggle-btn.active {
-            background: white;
-            color: #1a1a1a;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            
         }
 
         .bar {
@@ -548,11 +520,6 @@
             stroke-width: 4.5;
             opacity: 1;
             z-index: 100;
-        }
-
-        .area-path {
-            cursor: pointer;
-            transition: fill 0.2s, fill-opacity 0.2s, stroke 0.2s, stroke-width 0.2s;
         }
 
         .endpoint-dot {
@@ -690,7 +657,7 @@
                     </div>
                     <div class="kpi-status-item">
                         <img class="kpi-status-icon" id="ndcStatus" src="placeholder-circle.svg" alt="○">
-                        <span>Latest <br> NDC</span>
+                        <span>NDC</span>
                     </div>
                     <div class="kpi-status-item">
                         <img class="kpi-status-icon" id="ltsStatus" src="placeholder-circle.svg" alt="○">
@@ -721,7 +688,6 @@
         let geoData = null;
         let hoveredCountry = null;
         let emissionsData = [];
-        let emissionsChartMode = 'abs'; // 'abs' or 'percent'
 
         function switchPromise(layer) {
             currentLayer = layer;
@@ -748,12 +714,12 @@
                 'default': '#ecf0f1'
             },
             ndc: {
-                'Submitted or Updated in 2025': '#8B4513',
-                'Submitted or Updated in 2020': '#a46947',
-                'Only First NDC': '#bb8d73',
-                'Only INDC': '#d3b2a1',
-                'No NDC': '#C0C0C0',
-                'No': '#C0C0C0',
+                '2025 NDC (Third NDC)': '#8B4513',
+                '2025 NDC (Second NDC)': '#a46947',
+                '2020 NDC (Second NDC)': '#bb8d73',
+                '2020 NDC (Updated First NDC)': '#d3b2a1',
+                'Only First NDC': '#f39c12',
+                'No Document Submitted (Only INDC)': '#C0C0C0',
                 'default': '#ecf0f1'
             },
             lts: {
@@ -892,7 +858,7 @@
             }
 
             const ndcEl = document.getElementById('ndcStatus');
-            if (data.ndc_status === 'Submitted or Updated in 2025') {
+            if (data.ndc && data.ndc !== 'No Document Submitted (Only INDC)') {
                 ndcEl.src = 'tick.svg';
                 ndcEl.alt = '✓';
                 ndcEl.className = 'kpi-status-icon';
@@ -967,18 +933,13 @@
                 if (!includeInTotal) return;
 
                 let inCategory = false;
-                let field = currentLayer;
-                if (currentLayer === 'ndc') {
-                    field = 'ndc_status';
-                } else if (currentLayer === 'net_zero') {
-                    field = 'net_zero_status_clean';
-                }
+                const field = currentLayer === 'net_zero' ? 'net_zero_status_clean' : currentLayer;
                 const value = d[field];
 
                 if (currentLayer === 'paris') {
                     inCategory = value === 'Joined Agreement' || value === 'Signed Agreement';
                 } else if (currentLayer === 'ndc') {
-                    inCategory = value === 'Submitted or Updated in 2025';
+                    inCategory = value === '2025 NDC (Third NDC)';
                 } else if (currentLayer === 'lts') {
                     inCategory = value === 'Yes';
                 } else if (currentLayer === 'net_zero') {
@@ -1111,29 +1072,29 @@
         }
 
         Promise.all([
-            d3.json('climate-promise-db.json'),
-            d3.json('merged_emissions.json'),
+            d3.csv('climate-promise-db.csv'),
+            d3.csv('merged_emissions.csv'),
             d3.json('countries_map.geojson')
-        ]).then(([jsonData, emissions, geoDataLoaded]) => {
+        ]).then(([csvData, emissions, geoDataLoaded]) => {
             // Load country promise data
-            jsonData.forEach(d => {
+            csvData.forEach(d => {
                 const countryName = d.Country.trim();
                 d.net_zero_status_clean = cleanNetZeroStatus(d.net_zero_goal || d.net_zero_goals || d.net_zero_status);
                 countryData[countryName] = d;
             });
 
             // Load emissions data (filter 2000-2023)
-            emissionsData = emissions
-                .map(d => ({
-                    entity: d.entity,
-                    code: d.code,
-                    year: parseInt(d.year),
-                    annual_ghg: parseFloat(d.annual_ghg),
-                    percapita_ghg: parseFloat(d.percapita_ghg),
-                    annual_ghg_billion: parseFloat(d.annual_ghg_billion),
-                    perc_annual_ghg: parseFloat(d.perc_annual_ghg)
-                }))
-                .filter(d => d.year >= 2000 && d.year <= 2023 && !isNaN(d.year));
+            emissionsData = emissions.filter(d => {
+                const year = parseInt(d.year);
+                return year >= 2000 && year <= 2023;
+            }).map(d => ({
+                entity: d.entity,
+                code: d.code,
+                year: parseInt(d.year),
+                annual_ghg: parseFloat(d.annual_ghg),
+                percapita_ghg: parseFloat(d.percapita_ghg),
+                annual_ghg_billion: parseFloat(d.annual_ghg_billion)
+            }));
 
             geoData = geoDataLoaded;
 
@@ -1177,13 +1138,8 @@
                 }
             }
 
-            // Use ndc_status for ndc layer, net_zero_status_clean for net_zero layer
-            let field = currentLayer;
-            if (currentLayer === 'ndc') {
-                field = 'ndc_status';
-            } else if (currentLayer === 'net_zero') {
-                field = 'net_zero_status_clean';
-            }
+            // Use net_zero_status_clean for net_zero layer
+            const field = currentLayer === 'net_zero' ? 'net_zero_status_clean' : currentLayer;
             const value = data[field];
             return colorSchemes[currentLayer][value] || colorSchemes[currentLayer]['default'];
         }
@@ -1207,23 +1163,18 @@
 
                         const tooltipWidth = 150;
                         const tooltipHeight = 30;
-                        const offset = 10;
-
-                        // Get mouse position relative to the map container
-                        const mapContainer = document.getElementById('map-container');
-                        const mapRect = mapContainer.getBoundingClientRect();
-                        let left = event.clientX + offset;
-                        let top = event.clientY + offset;
+                        let left = event.pageX + 10;
+                        let top = event.pageY - 10;
 
                         // Keep tooltip within viewport bounds
                         if (left + tooltipWidth > window.innerWidth) {
-                            left = event.clientX - tooltipWidth - offset;
+                            left = event.pageX - tooltipWidth - 10;
                         }
                         if (top + tooltipHeight > window.innerHeight) {
-                            top = event.clientY - tooltipHeight - offset;
+                            top = event.pageY - tooltipHeight - 10;
                         }
-                        if (left < mapRect.left) left = mapRect.left + offset;
-                        if (top < mapRect.top) top = mapRect.top + offset;
+                        if (left < 0) left = 10;
+                        if (top < 0) top = 10;
 
                         countryLabel
                             .classed("show", true)
@@ -1235,23 +1186,18 @@
                 .on("mousemove", function(event) {
                     const tooltipWidth = 150;
                     const tooltipHeight = 30;
-                    const offset = 10;
-
-                    // Get mouse position relative to the map container
-                    const mapContainer = document.getElementById('map-container');
-                    const mapRect = mapContainer.getBoundingClientRect();
-                    let left = event.clientX + offset;
-                    let top = event.clientY + offset;
+                    let left = event.pageX + 10;
+                    let top = event.pageY - 10;
 
                     // Keep tooltip within viewport bounds
                     if (left + tooltipWidth > window.innerWidth) {
-                        left = event.clientX - tooltipWidth - offset;
+                        left = event.pageX - tooltipWidth - 10;
                     }
                     if (top + tooltipHeight > window.innerHeight) {
-                        top = event.clientY - tooltipHeight - offset;
+                        top = event.pageY - tooltipHeight - 10;
                     }
-                    if (left < mapRect.left) left = mapRect.left + offset;
-                    if (top < mapRect.top) top = mapRect.top + offset;
+                    if (left < 0) left = 10;
+                    if (top < 0) top = 10;
 
                     countryLabel
                         .style("left", left + "px")
@@ -1372,12 +1318,7 @@
             const container = d3.select('#stacked-bar-chart');
             container.selectAll('*').remove();
 
-            let colorField = currentLayer;
-            if (currentLayer === 'ndc') {
-                colorField = 'ndc_status';
-            } else if (currentLayer === 'net_zero') {
-                colorField = 'net_zero_status_clean';
-            }
+            const colorField = currentLayer === 'net_zero' ? 'net_zero_status_clean' : currentLayer;
             const colorScheme = currentLayer === 'net_zero' ? colorSchemes.net_zero_status_clean : colorSchemes[currentLayer];
 
             const stats = {};
@@ -1422,12 +1363,12 @@
             const categoryOrder = {
                 'paris': ['Joined Agreement', 'Signed Agreement', 'Withdrawn Agreement', 'No'],
                 'ndc': [
-                    'Submitted or Updated in 2025',
-                    'Submitted or Updated in 2020',
+                    '2025 NDC (Third NDC)',
+                    '2025 NDC (Second NDC)',
+                    '2020 NDC (Second NDC)',
+                    '2020 NDC (Updated First NDC)',
                     'Only First NDC',
-                    'Only INDC',
-                    'No NDC',
-                    'No'
+                    'No Document Submitted (Only INDC)'
                 ],
                 'lts': ['Yes', 'No'],
                 'net_zero': ['In Law', 'In Policy Document', 'Announced', 'No', 'Achieved']
@@ -1588,38 +1529,8 @@
             const section = container.append('div')
                 .attr('class', 'chart-section');
 
-            const header = section.append('h3');
-
-            const titleSpan = header.append('span')
+            section.append('h3')
                 .text(title);
-
-            // Add toggle for first chart (absolute emissions)
-            if (metric === 'annual_ghg_billion') {
-                const toggle = header.append('div')
-                    .attr('class', 'chart-toggle');
-
-                toggle.append('button')
-                    .attr('class', 'chart-toggle-btn' + (emissionsChartMode === 'abs' ? ' active' : ''))
-                    .attr('id', 'toggle-abs')
-                    .text('Abs')
-                    .on('click', function() {
-                        emissionsChartMode = 'abs';
-                        d3.select('#toggle-abs').classed('active', true);
-                        d3.select('#toggle-percent').classed('active', false);
-                        createScatterPlot();
-                    });
-
-                toggle.append('button')
-                    .attr('class', 'chart-toggle-btn' + (emissionsChartMode === 'percent' ? ' active' : ''))
-                    .attr('id', 'toggle-percent')
-                    .text('%')
-                    .on('click', function() {
-                        emissionsChartMode = 'percent';
-                        d3.select('#toggle-abs').classed('active', false);
-                        d3.select('#toggle-percent').classed('active', true);
-                        createScatterPlot();
-                    });
-            }
 
             const chartWidth = window.innerWidth * 0.25 - 60;
             const chartHeight = 310;
@@ -1634,67 +1545,26 @@
             const chartG = chartSvg.append('g')
                 .attr('transform', `translate(${margin.left},${margin.top})`);
 
-            // Scales - show 2020-2023 for percentage mode, 2000-2023 for absolute
-            const xDomain = (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent')
-                ? [2020, 2023]
-                : [2000, 2023];
-
+            // Scales
             const xScale = d3.scaleLinear()
-                .domain(xDomain)
+                .domain([2000, 2023])
                 .range([0, innerWidth]);
 
-            // Calculate percentage data if in percent mode and this is the absolute emissions chart
-            let processedData = new Map();
-            let allValues = [];
-
-            if (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent') {
-                // Filter to only years 2020-2023 for percentage view
-                const filteredEmissions = new Map();
-                countriesEmissions.forEach((values, countryName) => {
-                    const filtered = values.filter(d => d.year >= 2020 && d.year <= 2023);
-                    if (filtered.length > 0) {
-                        filteredEmissions.set(countryName, filtered);
-                    }
-                });
-
-                // Use perc_annual_ghg column directly
-                filteredEmissions.forEach((values, countryName) => {
-                    const percentValues = values.map(d => ({
-                        ...d,
-                        percentValue: d.perc_annual_ghg || 0
-                    }));
-                    processedData.set(countryName, percentValues);
-                    allValues.push(...percentValues.map(d => d.percentValue).filter(v => !isNaN(v) && v > 0));
-                });
-            } else {
-                // Use raw values
-                countriesEmissions.forEach((values, countryName) => {
-                    processedData.set(countryName, values);
-                });
-                allValues = Array.from(countriesEmissions.values())
-                    .flat()
-                    .map(d => d[metric])
-                    .filter(v => !isNaN(v) && v > 0);
-            }
-
-            // Set y-scale domain: 0-100 for percentage mode, otherwise max of values
-            const yDomain = (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent')
-                ? [0, 100]
-                : [0, d3.max(allValues)];
+            // Get all values for this metric to set y scale domain (based on filtered countries)
+            const allValues = Array.from(countriesEmissions.values())
+                .flat()
+                .map(d => d[metric])
+                .filter(v => !isNaN(v) && v > 0);
 
             const yScale = d3.scaleLinear()
-                .domain(yDomain)
+                .domain([0, d3.max(allValues)])
                 .range([innerHeight, 0]);
 
             // Line generator with curve smoothing
-            const valueAccessor = (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent')
-                ? d => d.percentValue
-                : d => d[metric];
-
             const line = d3.line()
                 .x(d => xScale(d.year))
-                .y(d => yScale(valueAccessor(d)))
-                .defined(d => !isNaN(valueAccessor(d)) && valueAccessor(d) > 0)
+                .y(d => yScale(d[metric]))
+                .defined(d => !isNaN(d[metric]) && d[metric] > 0)
                 .curve(d3.curveMonotoneX); // Smooth curve that preserves monotonicity
 
             // Grid lines
@@ -1710,26 +1580,21 @@
                 .attr('y1', d => yScale(d))
                 .attr('y2', d => yScale(d));
 
-            // Axes - adjust ticks based on mode
-            const xTicks = (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent') ? 4 : 6;
+            // Axes
             chartG.append('g')
                 .attr('class', 'axis')
                 .attr('transform', `translate(0,${innerHeight})`)
-                .call(d3.axisBottom(xScale).ticks(xTicks).tickFormat(d3.format('d')))
+                .call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('d')))
                 .selectAll('text')
                 .style('font-size', '11px');
 
             // Y-axis without line, only labels
-            const yAxisFormat = (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent')
-                ? d => d.toFixed(1) + '%'
-                : d => {
-                    if (d >= 1000) return Math.round(d / 1000) + 'k';
-                    return d % 1 === 0 ? d : d.toFixed(1);
-                };
-
             const yAxis = chartG.append('g')
                 .attr('class', 'axis')
-                .call(d3.axisLeft(yScale).ticks(5).tickFormat(yAxisFormat));
+                .call(d3.axisLeft(yScale).ticks(5).tickFormat(d => {
+    if (d >= 1000) return Math.round(d / 1000) + 'k';  
+    return d % 1 === 0 ? d : d.toFixed(1);  
+}));
 
             // Remove the axis line and tick marks
             yAxis.select('.domain').remove();
@@ -1745,10 +1610,6 @@
                 .attr('fill', '#666')
                 .attr('font-weight', '600')
 
-            const finalYAxisLabel = (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent')
-                ? '% of total'
-                : yAxisLabel;
-
             chartSvg.append('text')
                 .attr('transform', 'rotate(-90)')
                 .attr('x', -(margin.top + innerHeight / 2))
@@ -1757,172 +1618,29 @@
                 .attr('font-size', '12px')
                 .attr('fill', '#666')
                 .attr('font-weight', '600')
-                .text(finalYAxisLabel);
+                .text(yAxisLabel);
 
-            // Draw stacked area chart for percent mode, lines for absolute mode
-            if (metric === 'annual_ghg_billion' && emissionsChartMode === 'percent') {
-                // Create stacked area chart
-
-                // Sort countries by average emissions (largest first, will be at bottom)
-                const countryOrder = Array.from(processedData.entries())
-                    .map(([country, values]) => {
-                        const avgEmissions = d3.mean(values, d => d.annual_ghg_billion || 0);
-                        return { country, avgEmissions };
-                    })
-                    .sort((a, b) => b.avgEmissions - a.avgEmissions)
-                    .map(d => d.country);
-
-                // Prepare data for stacking: array of objects with year and country values
-                const years = [2020, 2021, 2022, 2023];
-                const stackData = years.map(year => {
-                    const dataPoint = { year };
-                    processedData.forEach((values, countryName) => {
-                        const yearData = values.find(d => d.year === year);
-                        dataPoint[countryName] = yearData ? yearData.percentValue : 0;
-                    });
-                    return dataPoint;
-                });
-
-                // Create stack generator
-                const stack = d3.stack()
-                    .keys(countryOrder)
-                    .order(d3.stackOrderNone);
-
-                const series = stack(stackData);
-
-                // Area generator
-                const area = d3.area()
-                    .x(d => xScale(d.data.year))
-                    .y0(d => yScale(d[0]))
-                    .y1(d => yScale(d[1]))
-                    .curve(d3.curveMonotoneX);
-
-                // Helper function to get country's map color
-                const getCountryMapColor = (countryName) => {
-                    // Find country in countryData with name mapping
-                    const country = countryData[countryName] ||
-                        countryData[Object.keys(countryData).find(k =>
-                            nameMapping[countryName] === k || nameMapping[k] === countryName
-                        )];
-
-                    if (!country) return '#8B4513';
-
-                    // Get color based on current layer
-                    let field = currentLayer;
-                    if (currentLayer === 'ndc') {
-                        field = 'ndc_status';
-                    } else if (currentLayer === 'net_zero') {
-                        field = 'net_zero_status_clean';
-                    }
-                    const value = country[field];
-                    return colorSchemes[currentLayer][value] || colorSchemes[currentLayer]['default'];
-                };
-
-                // Draw areas
-                const areaPaths = chartG.selectAll('.area-path')
-                    .data(series)
-                    .enter()
-                    .append('path')
-                    .attr('class', 'area-path')
-                    .attr('data-country', d => d.key)
+            // Draw lines for all countries
+            countriesEmissions.forEach((countryValues, countryName) => {
+                chartG.append('path')
+                    .datum(countryValues)
+                    .attr('class', 'country-line')
+                    .attr('data-country', countryName)
                     .attr('data-metric', metric)
-                    .attr('fill', 'transparent')
-                    .attr('stroke', '#c0c0c0')
-                    .attr('stroke-width', 0.8)
-                    .style('pointer-events', 'all')
-                    .attr('d', area);
-
-                // Add tooltips
-                areaPaths.append('title')
-                    .text(d => {
-                        // Calculate average percentage for tooltip
-                        const avgPercent = d3.mean(d, point => point[1] - point[0]);
-                        return `${d.key}: ${avgPercent.toFixed(2)}% (avg)`;
-                    });
-
-                // Add mouse events
-                areaPaths
-                    .on('mouseover', function(event, d) {
-                        const countryName = d.key;
-                        const mapColor = getCountryMapColor(countryName);
-
-                        // Fill with country's map color and increase stroke
-                        d3.select(this)
-                            .attr('fill', mapColor)
-                            .attr('fill-opacity', 0.7)
-                            .attr('stroke', '#1a1a1a')
-                            .attr('stroke-width', 1.5);
-
-                        hoveredCountry = countryName;
-                        highlightScatterDot(countryName);
-
-                        // Find country data with name mapping
-                        const mappedCountryData = countryData[countryName] ||
-                            countryData[Object.keys(countryData).find(k =>
-                                nameMapping[countryName] === k || nameMapping[k] === countryName
-                            )];
-
-                        if (mappedCountryData) {
-                            updateCountryInfo(mappedCountryData);
-                        }
-                    })
-                    .on('mouseout', function() {
-                        // Remove fill, back to transparent
-                        d3.select(this)
-                            .attr('fill', 'transparent')
-                            .attr('fill-opacity', 1)
-                            .attr('stroke', '#c0c0c0')
-                            .attr('stroke-width', 0.8);
-
-                        hoveredCountry = null;
-                        unhighlightScatterDot();
-                    })
+                    .attr('d', line)
                     .each(function() {
-                        // Store scales for later use
+                        // Store scales and data for later use
                         d3.select(this).property('__xScale', xScale);
                         d3.select(this).property('__yScale', yScale);
                         d3.select(this).property('__metric', metric);
                     });
-
-            } else {
-                // Draw lines for all countries with transitions (absolute mode)
-                processedData.forEach((countryValues, countryName) => {
-                    const path = chartG.append('path')
-                        .datum(countryValues)
-                        .attr('class', 'country-line')
-                        .attr('data-country', countryName)
-                        .attr('data-metric', metric)
-                        .attr('d', line)
-                        .each(function() {
-                            // Store scales and data for later use
-                            d3.select(this).property('__xScale', xScale);
-                            d3.select(this).property('__yScale', yScale);
-                            d3.select(this).property('__metric', metric);
-                            d3.select(this).property('__valueAccessor', valueAccessor);
-                        });
-
-                    // Add transition for smoother appearance
-                    const totalLength = path.node().getTotalLength();
-                    path
-                        .attr('stroke-dasharray', totalLength + ' ' + totalLength)
-                        .attr('stroke-dashoffset', totalLength)
-                        .transition()
-                        .duration(500)
-                        .ease(d3.easeLinear)
-                        .attr('stroke-dashoffset', 0)
-                        .on('end', function() {
-                            // Remove dash array after animation
-                            d3.select(this).attr('stroke-dasharray', null);
-                        });
-                });
-            }
+            });
         }
 
         function highlightScatterDot(countryName) {
             // Remove any existing endpoint dots
             d3.selectAll('.endpoint-dot').remove();
 
-            // Highlight lines (for absolute mode)
             d3.selectAll('.country-line')
                 .classed('highlighted', function() {
                     const isHighlighted = d3.select(this).attr('data-country') === countryName;
@@ -1937,71 +1655,20 @@
                         const xScale = lineElement.property('__xScale');
                         const yScale = lineElement.property('__yScale');
                         const metric = lineElement.property('__metric');
-                        const valueAccessor = lineElement.property('__valueAccessor');
 
                         if (lineData && lineData.length > 0 && xScale && yScale) {
                             const lastPoint = lineData[lineData.length - 1];
                             const parent = d3.select(this.parentNode);
 
-                            // Use value accessor if available, otherwise use metric directly
-                            const yValue = valueAccessor ? valueAccessor(lastPoint) : lastPoint[metric];
-
                             parent.append('circle')
                                 .attr('class', 'endpoint-dot')
                                 .attr('cx', xScale(lastPoint.year))
-                                .attr('cy', yScale(yValue))
+                                .attr('cy', yScale(lastPoint[metric]))
                                 .attr('r', 4);
                         }
                     }
 
                     return isHighlighted;
-                });
-
-            // Highlight areas (for percent mode)
-            d3.selectAll('.area-path')
-                .each(function() {
-                    const areaElement = d3.select(this);
-                    const areaCountry = areaElement.attr('data-country');
-
-                    // Check if country names match (considering name mappings)
-                    const isHighlighted = areaCountry === countryName ||
-                        nameMapping[areaCountry] === countryName ||
-                        nameMapping[countryName] === areaCountry;
-
-                    if (isHighlighted) {
-                        // Get country's map color
-                        let mapColor = '#8B4513';
-                        const country = countryData[countryName] ||
-                            countryData[Object.keys(countryData).find(k =>
-                                nameMapping[countryName] === k || nameMapping[k] === countryName
-                            )];
-
-                        if (country) {
-                            let field = currentLayer;
-                            if (currentLayer === 'ndc') {
-                                field = 'ndc_status';
-                            } else if (currentLayer === 'net_zero') {
-                                field = 'net_zero_status_clean';
-                            }
-                            const value = country[field];
-                            mapColor = colorSchemes[currentLayer][value] || colorSchemes[currentLayer]['default'];
-                        }
-
-                        // Bring to front and fill with map color
-                        this.parentNode.appendChild(this);
-                        areaElement
-                            .attr('fill', mapColor)
-                            .attr('fill-opacity', 0.7)
-                            .attr('stroke', '#1a1a1a')
-                            .attr('stroke-width', 1.5);
-                    } else {
-                        // Transparent with subtle stroke
-                        areaElement
-                            .attr('fill', 'transparent')
-                            .attr('fill-opacity', 1)
-                            .attr('stroke', '#d0d0d0')
-                            .attr('stroke-width', 0.5);
-                    }
                 });
         }
 
@@ -2009,13 +1676,6 @@
             d3.selectAll('.country-line')
                 .classed('highlighted', false);
             d3.selectAll('.endpoint-dot').remove();
-
-            // Reset area paths to transparent
-            d3.selectAll('.area-path')
-                .attr('fill', 'transparent')
-                .attr('fill-opacity', 1)
-                .attr('stroke', '#c0c0c0')
-                .attr('stroke-width', 0.8);
         }
 
         function toggleSection(sectionId) {

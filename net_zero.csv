@@ -1,0 +1,107 @@
+"","ISO","Country","Latest_Status","Latest_Date"
+"1","AND","Andorra","In Policy Document ",2021-11-10
+"2","ATG","Antigua and Barbuda","In Policy Document ",2021-09-02
+"3","ARG","Argentina","In Policy Document ",2022-11-06
+"4","AUS","Australia","In Law ",2022-09-08
+"5","AUT","Austria","In Law ",2022-01-01
+"6","BHR","Bahrain","In Political Pledge ",2021-11-02
+"7","BRB","Barbados","In Policy Document ",2021-03-01
+"8","BEL","Belgium","In Policy Document ",2020-09-30
+"9","BLZ","Belize","In Policy Document ",2023-05-03
+"10","BTN","Bhutan","In Policy Document ",2023-09-22
+"11","BRA","Brazil","In Policy Document ",2024-11-13
+"12","BGR","Bulgaria","In Political Pledge ",2021-11-02
+"13","BFA","Burkina Faso",NA,NA
+"14","CPV","Cabo Verde","In Policy Document ",2021-04-05
+"15","KHM","Cambodia","In Policy Document ",2021-12-30
+"16","CAN","Canada","In Policy Document ",2022-10-31
+"17","CHL","Chile","In Law ",2022-09-08
+"18","CHN","China","In Policy Document ",2021-10-28
+"19","COL","Colombia","In Law ",2021-12-22
+"20","COM","Comoros","In Policy Document ",2021-11-05
+"21","COK","Cook Islands","In Political Pledge ",2022-11-07
+"22","CRI","Costa Rica","In Policy Document ",2019-12-12
+"23","HRV","Croatia","In Policy Document ",2021-06-01
+"24","CYP","Cyprus","In Policy Document ",2023-02-07
+"25","DNK","Denmark","In Policy Document ",2020-12-30
+"26","DMA","Dominica","In Policy Document ",2020-05-14
+"27","DOM","Dominican Republic","In Policy Document ",2020-12-28
+"28","EST","Estonia","In Political Pledge ",2021-01-25
+"29","ETH","Ethiopia","In Policy Document ",2023-06-21
+"30","EUU","European Union (27)","In Law ",2021-06-30
+"31","FJI","Fiji","In Law ",2021-09-23
+"32","FIN","Finland","In Law ",2022-05-25
+"33","FRA","France","In Policy Document ",2021-02-08
+"34","GAB","Gabon","In Policy Document ",2022-07-06
+"35","GMB","Gambia","In Policy Document ",2022-09-22
+"36","GEO","Georgia","In Policy Document ",2023-07-25
+"37","DEU","Germany","In Law ",2021-05-05
+"38","GHA","Ghana","In Policy Document ",2023-09-21
+"39","GRC","Greece","In Law ",2022-05-26
+"40","GUY","Guyana","In Policy Document ",2022-07-01
+"41","HUN","Hungary","In Law ",2020-05-14
+"42","ISL","Iceland","In Policy Document ",2021-10-28
+"43","IND","India","In Policy Document ",2022-11-14
+"44","IDN","Indonesia","In Political Pledge ",2024-11-20
+"45","IRL","Ireland","In Policy Document ",2024-07-23
+"46","ISR","Israel","In Political Pledge ",2021-11-01
+"47","ITA","Italy","In Policy Document ",2020-12-12
+"48","JAM","Jamaica","In Political Pledge ",2020-12-12
+"49","JPN","Japan","In Policy Document ",2021-11-21
+"50","KAZ","Kazakhstan","In Law ",2023-02-02
+"51","KWT","Kuwait","In Political Pledge ",2022-11-08
+"52","LAO","Laos","In Policy Document ",2021-05-12
+"53","LVA","Latvia","In Policy Document ",2020-12-09
+"54","LBR","Liberia","In Policy Document ",2018-08-27
+"55","LTU","Lithuania","In Policy Document ",2021-11-02
+"56","LUX","Luxembourg","In Policy Document ",2021-11-02
+"57","MWI","Malawi","In Political Pledge ",2020-12-12
+"58","MYS","Malaysia","In Policy Document ",2021-09-27
+"59","MDV","Maldives","In Law ",2021-04-29
+"60","MLT","Malta","In Policy Document ",2021-11-12
+"61","MHL","Marshall Islands","In Policy Document ",2018-11-22
+"62","MRT","Mauritania","In Political Pledge ",2021-11-01
+"63","MUS","Mauritius","In Political Pledge ",2020-12-12
+"64","MEX","Mexico","In Political Pledge ",2024-11-21
+"65","FSM","Micronesia","In Political Pledge ",2022-10-17
+"66","MCO","Monaco","In Policy Document ",2020-12-27
+"67","MNG","Mongolia","In Political Pledge ",2022-11-07
+"68","MNE","Montenegro","In Political Pledge ",2021-11-01
+"69","MAR","Morocco","In Policy Document ",2021-12-21
+"70","NAM","Namibia","In Policy Document ",2021-07-30
+"71","NRU","Nauru","In Political Pledge ",2020-12-12
+"72","NPL","Nepal","In Policy Document ",2021-10-31
+"73","NLD","Netherlands","In Law ",2020-01-01
+"74","NZL","New Zealand","In Policy Document ",2025-01-31
+"75","NGA","Nigeria","In Policy Document ",2024-04-25
+"76","NOR","Norway","In Policy Document ",2021-01-08
+"77","OMN","Oman","In Policy Document ",2023-11-29
+"78","PAN","Panama","In Policy Document ",2024-06-18
+"79","PNG","Papua New Guinea","In Policy Document ",2021-12-16
+"80","PER","Peru","In Policy Document ",2020-12-18
+"81","PRT","Portugal","In Law ",2021-12-31
+"82","ROU","Romania","In Policy Document ",2023-12-07
+"83","RUS","Russia","In Law ",2021-10-29
+"84","RWA","Rwanda","In Political Pledge ",2021-11-02
+"85","SAU","Saudi Arabia",NA,NA
+"86","SYC","Seychelles","In Policy Document ",2021-07-30
+"87","SGP","Singapore","In Policy Document ",2020-03-31
+"88","SVK","Slovakia","In Policy Document ",2020-03-30
+"89","SVN","Slovenia","In Policy Document ",2020-02-27
+"90","SLB","Solomon Islands","In Policy Document ",2021-07-21
+"91","ZAF","South Africa","In Policy Document ",2022-08-31
+"92","KOR","South Korea","In Law ",2021-09-24
+"93","ESP","Spain","In Law ",2021-05-27
+"94","LKA","Sri Lanka","In Policy Document ",2023-06-05
+"95","SWE","Sweden","In Policy Document ",2020-12-11
+"96","CHE","Switzerland","In Policy Document ",2025-01-29
+"97","THA","Thailand",NA,NA
+"98","TUN","Tunisia",NA,NA
+"99","TUR","Turkey","In Policy Document ",2024-11-11
+"100","TUV","Tuvalu","In Policy Document ",2022-11-16
+"101","UKR","Ukraine","In Political Pledge ",2021-11-01
+"102","ARE","United Arab Emirates","In Policy Document ",2024-11-06
+"103","GBR","United Kingdom","In Policy Document ",2025-01-30
+"104","URY","Uruguay","In Policy Document ",2021-12-28
+"105","VUT","Vanuatu","In Policy Document ",2023-05-17
+"106","VNM","Vietnam","In Policy Document ",2022-11-08
