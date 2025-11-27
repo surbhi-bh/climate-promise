@@ -582,7 +582,7 @@
         }
 
         .country-label {
-            position: absolute;
+            position: fixed;
             background: rgba(0,0,0,0.85);
             color: white;
             padding: 6px 12px;
@@ -1202,8 +1202,8 @@
                         updateCountryInfo(data);
 
                         const offset = 10;
-                        let left = event.pageX + offset;
-                        let top = event.pageY - offset;
+                        let left = event.clientX + offset;
+                        let top = event.clientY + offset;
 
                         countryLabel
                             .classed("show", true)
@@ -1214,8 +1214,8 @@
                 })
                 .on("mousemove", function(event) {
                     const offset = 10;
-                    let left = event.pageX + offset;
-                    let top = event.pageY - offset;
+                    let left = event.clientX + offset;
+                    let top = event.clientY + offset;
 
                     countryLabel
                         .style("left", left + "px")
@@ -1280,14 +1280,14 @@
                     .on("mouseover", function(event) {
                         countryLabel
                             .classed("show", true)
-                            .style("left", (event.pageX + 5) + "px")
-                            .style("top", (event.pageY - 5) + "px")
+                            .style("left", (event.clientX + 10) + "px")
+                            .style("top", (event.clientY + 10) + "px")
                             .text(`${data.Country}: ${displayValue}`);
                     })
                     .on("mousemove", function(event) {
                         countryLabel
-                            .style("left", (event.pageX + 5) + "px")
-                            .style("top", (event.pageY - 5) + "px");
+                            .style("left", (event.clientX + 10) + "px")
+                            .style("top", (event.clientY + 10) + "px");
                     })
                     .on("mouseout", function() {
                         countryLabel.classed("show", false);
@@ -1929,24 +1929,27 @@
                             // Use value accessor if available, otherwise use metric directly
                             const yValue = valueAccessor ? valueAccessor(lastPoint) : lastPoint[metric];
 
-                            parent.append('circle')
-                                .attr('class', 'endpoint-dot')
-                                .attr('cx', xScale(lastPoint.year))
-                                .attr('cy', yScale(yValue))
-                                .attr('r', 4);
+                            if (!isNaN(yValue) && yValue !== null && yValue !== undefined) {
+                                parent.append('circle')
+                                    .attr('class', 'endpoint-dot')
+                                    .attr('cx', xScale(lastPoint.year))
+                                    .attr('cy', yScale(yValue))
+                                    .attr('r', 4);
 
-                            // Add value label
-                            const displayValue = metric === 'annual_ghg_billion'
-                                ? yValue.toFixed(2)
-                                : metric === 'percapita_ghg'
-                                ? yValue.toFixed(1)
-                                : yValue.toFixed(2);
+                                // Add value label
+                                const displayValue = metric === 'annual_ghg_billion'
+                                    ? yValue.toFixed(2)
+                                    : metric === 'percapita_ghg'
+                                    ? yValue.toFixed(1)
+                                    : yValue.toFixed(2);
 
-                            parent.append('text')
-                                .attr('class', 'endpoint-label')
-                                .attr('x', xScale(lastPoint.year) + 8)
-                                .attr('y', yScale(yValue) + 4)
-                                .text(displayValue);
+                                parent.append('text')
+                                    .attr('class', 'endpoint-label')
+                                    .attr('x', xScale(lastPoint.year) + 8)
+                                    .attr('y', yScale(yValue) + 4)
+                                    .attr('text-anchor', 'start')
+                                    .text(displayValue);
+                            }
                         }
                     }
 
