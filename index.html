@@ -561,6 +561,13 @@
             stroke-width: 2;
         }
 
+        .endpoint-label {
+            font-size: 11px;
+            font-weight: 600;
+            fill: #8B4513;
+            pointer-events: none;
+        }
+
         .grid-line {
             stroke: #e0e0e0;
             stroke-dasharray: 2,2;
@@ -617,7 +624,6 @@
                 <select class="dropdown-select" id="groupBySelect" onchange="handleGroupByChange()">
                     <option value="all">All Countries</option>
                     <option value="region">By Region</option>
-                    <option value="income_group">By Income</option>
                     <option value="economic_block">By Economic Block</option>
                 </select>
                 <div id="subOptions"></div>
@@ -939,6 +945,11 @@
                     if (selectedFilter.type === 'economic_block') {
                         const blockValue = d[selectedFilter.value];
                         includeInTotal = blockValue && blockValue !== 'No' && blockValue !== '0';
+                        // Special handling for OPEC - only show specific countries
+                        if (selectedFilter.value === 'OPEC') {
+                            const opecCountries = ['Algeria', 'Congo', 'Equatorial Guinea', 'Gabon', 'Iran', 'Iraq', 'Kuwait', 'Libya', 'Nigeria', 'Saudi Arabia', 'United Arab Emirates', 'Venezuela'];
+                            includeInTotal = includeInTotal && opecCountries.includes(d.Country);
+                        }
                     } else {
                         includeInTotal = d[selectedFilter.type] === selectedFilter.value;
                     }
@@ -959,6 +970,11 @@
                     if (selectedFilter.type === 'economic_block') {
                         const blockValue = d[selectedFilter.value];
                         includeInTotal = blockValue && blockValue !== 'No' && blockValue !== '0';
+                        // Special handling for OPEC - only show specific countries
+                        if (selectedFilter.value === 'OPEC') {
+                            const opecCountries = ['Algeria', 'Congo', 'Equatorial Guinea', 'Gabon', 'Iran', 'Iraq', 'Kuwait', 'Libya', 'Nigeria', 'Saudi Arabia', 'United Arab Emirates', 'Venezuela'];
+                            includeInTotal = includeInTotal && opecCountries.includes(d.Country);
+                        }
                     } else {
                         includeInTotal = d[selectedFilter.type] === selectedFilter.value;
                     }
@@ -1032,7 +1048,7 @@
             } else if (currentGroupBy === 'region') {
                 const regions = new Set();
                 Object.values(countryData).forEach(d => {
-                    if (d.region) regions.add(d.region);
+                    if (d.region && d.region !== '#N/A' && d.region !== '#NA') regions.add(d.region);
                 });
 
                 container.innerHTML = `
@@ -1056,35 +1072,8 @@
                         }
                     });
                 });
-            } else if (currentGroupBy === 'income_group') {
-                const incomes = new Set();
-                Object.values(countryData).forEach(d => {
-                    if (d.income_group) incomes.add(d.income_group);
-                });
-
-                container.innerHTML = `
-                    <div class="radio-group">
-                        ${Array.from(incomes).sort().map(inc => `
-                            <div class="radio-option">
-                                <input type="radio" id="income-${inc.replace(/[^a-zA-Z0-9]/g, '')}" name="filteroption" value="${inc}">
-                                <label for="income-${inc.replace(/[^a-zA-Z0-9]/g, '')}">${inc}</label>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-
-                document.querySelectorAll('input[name="filteroption"]').forEach(radio => {
-                    radio.addEventListener('change', function() {
-                        if (this.checked) {
-                            selectedFilter = { type: 'income_group', value: this.value };
-                            drawMap();
-                            updateCharts();
-                            updateKPIHeader();
-                        }
-                    });
-                });
             } else if (currentGroupBy === 'economic_block') {
-                const blocks = ['G20', 'G7', 'BRICS', 'OECD', 'NATO', 'EU', 'OPEC', 'CIS'];
+                const blocks = ['G20', 'G7', 'BRICS', 'OECD', 'NATO', 'EU', 'OPEC'];
 
                 container.innerHTML = `
                     <div class="radio-group">
@@ -1170,6 +1159,13 @@
                     if (!blockValue || blockValue === 'No' || blockValue === '0') {
                         return '#ecf0f1';
                     }
+                    // Special handling for OPEC - only show specific countries
+                    if (selectedFilter.value === 'OPEC') {
+                        const opecCountries = ['Algeria', 'Congo', 'Equatorial Guinea', 'Gabon', 'Iran', 'Iraq', 'Kuwait', 'Libya', 'Nigeria', 'Saudi Arabia', 'United Arab Emirates', 'Venezuela'];
+                        if (!opecCountries.includes(data.Country)) {
+                            return '#ecf0f1';
+                        }
+                    }
                 } else {
                     if (data[selectedFilter.type] !== selectedFilter.value) {
                         return '#ecf0f1';
@@ -1205,25 +1201,9 @@
                         highlightScatterDot(data.Country);
                         updateCountryInfo(data);
 
-                        const tooltipWidth = 150;
-                        const tooltipHeight = 30;
                         const offset = 10;
-
-                        // Get mouse position relative to the map container
-                        const mapContainer = document.getElementById('map-container');
-                        const mapRect = mapContainer.getBoundingClientRect();
-                        let left = event.clientX + offset;
-                        let top = event.clientY + offset;
-
-                        // Keep tooltip within viewport bounds
-                        if (left + tooltipWidth > window.innerWidth) {
-                            left = event.clientX - tooltipWidth - offset;
-                        }
-                        if (top + tooltipHeight > window.innerHeight) {
-                            top = event.clientY - tooltipHeight - offset;
-                        }
-                        if (left < mapRect.left) left = mapRect.left + offset;
-                        if (top < mapRect.top) top = mapRect.top + offset;
+                        let left = event.pageX + offset;
+                        let top = event.pageY - offset;
 
                         countryLabel
                             .classed("show", true)
@@ -1233,25 +1213,9 @@
                     }
                 })
                 .on("mousemove", function(event) {
-                    const tooltipWidth = 150;
-                    const tooltipHeight = 30;
                     const offset = 10;
-
-                    // Get mouse position relative to the map container
-                    const mapContainer = document.getElementById('map-container');
-                    const mapRect = mapContainer.getBoundingClientRect();
-                    let left = event.clientX + offset;
-                    let top = event.clientY + offset;
-
-                    // Keep tooltip within viewport bounds
-                    if (left + tooltipWidth > window.innerWidth) {
-                        left = event.clientX - tooltipWidth - offset;
-                    }
-                    if (top + tooltipHeight > window.innerHeight) {
-                        top = event.clientY - tooltipHeight - offset;
-                    }
-                    if (left < mapRect.left) left = mapRect.left + offset;
-                    if (top < mapRect.top) top = mapRect.top + offset;
+                    let left = event.pageX + offset;
+                    let top = event.pageY - offset;
 
                     countryLabel
                         .style("left", left + "px")
@@ -1279,8 +1243,16 @@
                 let value = parseFloat(data[currentBubbleMetric]);
                 if (isNaN(value) || value <= 0) return;
 
-                const centroid = path.centroid(feature);
+                let centroid = path.centroid(feature);
                 if (!centroid || isNaN(centroid[0]) || isNaN(centroid[1])) return;
+
+                // Special positioning for USA to place bubble on mainland
+                if (feature.properties.NAME_LONG === 'United States of America' || data.Country === 'United States') {
+                    // Adjust centroid to be more centered on mainland USA (approximately Kansas)
+                    const usaMainlandLon = -98.5;
+                    const usaMainlandLat = 39.0;
+                    centroid = projection([usaMainlandLon, usaMainlandLat]);
+                }
 
                 let radius;
                 let displayValue = value;
@@ -1389,6 +1361,11 @@
                     if (selectedFilter.type === 'economic_block') {
                         const blockValue = d[selectedFilter.value];
                         if (!blockValue || blockValue === 'No' || blockValue === '0') return;
+                        // Special handling for OPEC - only show specific countries
+                        if (selectedFilter.value === 'OPEC') {
+                            const opecCountries = ['Algeria', 'Congo', 'Equatorial Guinea', 'Gabon', 'Iran', 'Iraq', 'Kuwait', 'Libya', 'Nigeria', 'Saudi Arabia', 'United Arab Emirates', 'Venezuela'];
+                            if (!opecCountries.includes(d.Country)) return;
+                        }
                     } else {
                         if (d[selectedFilter.type] !== selectedFilter.value) return;
                     }
@@ -1552,6 +1529,11 @@
                         if (selectedFilter.type === 'economic_block') {
                             const blockValue = countryInfo[selectedFilter.value];
                             includeCountry = blockValue && blockValue !== 'No' && blockValue !== '0';
+                            // Special handling for OPEC - only show specific countries
+                            if (selectedFilter.value === 'OPEC') {
+                                const opecCountries = ['Algeria', 'Congo', 'Equatorial Guinea', 'Gabon', 'Iran', 'Iraq', 'Kuwait', 'Libya', 'Nigeria', 'Saudi Arabia', 'United Arab Emirates', 'Venezuela'];
+                                includeCountry = includeCountry && opecCountries.includes(countryInfo.Country);
+                            }
                         } else {
                             includeCountry = countryInfo[selectedFilter.type] === selectedFilter.value;
                         }
@@ -1919,8 +1901,9 @@
         }
 
         function highlightScatterDot(countryName) {
-            // Remove any existing endpoint dots
+            // Remove any existing endpoint dots and labels
             d3.selectAll('.endpoint-dot').remove();
+            d3.selectAll('.endpoint-label').remove();
 
             // Highlight lines (for absolute mode)
             d3.selectAll('.country-line')
@@ -1931,7 +1914,7 @@
                         // Bring highlighted line to front
                         this.parentNode.appendChild(this);
 
-                        // Add endpoint dot
+                        // Add endpoint dot and label
                         const lineElement = d3.select(this);
                         const lineData = lineElement.datum();
                         const xScale = lineElement.property('__xScale');
@@ -1951,6 +1934,19 @@
                                 .attr('cx', xScale(lastPoint.year))
                                 .attr('cy', yScale(yValue))
                                 .attr('r', 4);
+
+                            // Add value label
+                            const displayValue = metric === 'annual_ghg_billion'
+                                ? yValue.toFixed(2)
+                                : metric === 'percapita_ghg'
+                                ? yValue.toFixed(1)
+                                : yValue.toFixed(2);
+
+                            parent.append('text')
+                                .attr('class', 'endpoint-label')
+                                .attr('x', xScale(lastPoint.year) + 8)
+                                .attr('y', yScale(yValue) + 4)
+                                .text(displayValue);
                         }
                     }
 
@@ -2009,6 +2005,7 @@
             d3.selectAll('.country-line')
                 .classed('highlighted', false);
             d3.selectAll('.endpoint-dot').remove();
+            d3.selectAll('.endpoint-label').remove();
 
             // Reset area paths to transparent
             d3.selectAll('.area-path')
