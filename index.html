@@ -263,14 +263,14 @@
 
         .legend {
             position: absolute;
-            bottom: 20px;
+            bottom: 50px;
             left: 20px;
             z-index: 100;
             background: transparent;
             padding: 0;
             display: flex;
             gap: 15px;
-            flex-wrap: wrap;
+            /* flex-wrap: wrap; */
             max-width: calc(75vw - 340px);
         }
 
@@ -293,7 +293,7 @@
         .map-headline p {
             font-size: 20px;
             color: #1e1e1e;
-            margin: -4px 3px;
+            margin: 0px 0px;
         }
 
         .legend-item {
@@ -662,7 +662,7 @@
     <div id="map-container">
         <div class="map-headline">
             <h2 id="kpiTitle">Paris Agreement:</h2>
-            <p id="kpiSubtitle">194 out of 198 countries have committed</p>
+            <p id="kpiSubtitle"></p>
         </div>
         <div id="stacked-bar-chart"></div>
         <svg id="map"></svg>
@@ -750,7 +750,7 @@
                 'Joined Agreement': '#8B4513',
                 'Signed Agreement': '#f39c12',
                 'Withdrawn Agreement': '#C0C0C0',
-                'No': '#C0C0C0',
+                // 'No': '#C0C0C0',
                 'default': '#ecf0f1'
             },
             ndc: {
@@ -1402,7 +1402,7 @@
 
             // Define order for each layer to match legend
             const categoryOrder = {
-                'paris': ['Joined Agreement', 'Signed Agreement', 'Withdrawn Agreement', 'No'],
+                'paris': ['Joined Agreement', 'Signed Agreement', 'Withdrawn Agreement'],
                 'ndc': [
                     'Submitted or Updated in 2025',
                     'Submitted or Updated in 2020',
