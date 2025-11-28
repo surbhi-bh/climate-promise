@@ -759,7 +759,6 @@
                 'Only First NDC': '#bb8d73',
                 'Only INDC': '#d3b2a1',
                 'No NDC': '#C0C0C0',
-                'No': '#C0C0C0',
                 'default': '#ecf0f1'
             },
             lts: {
@@ -772,7 +771,7 @@
                 'In Policy Document': '#a46947',
                 'Announced': '#d3b2a1',
                 'Achieved': 'green',
-                'No': '#C0C0C0',
+                'No Target': '#C0C0C0',
                 'default': '#ecf0f1'
             },
             net_zero_status_clean: {
@@ -780,7 +779,7 @@
                 'In Policy Document': '#a46947',
                 'Announced': '#d3b2a1',
                 'Achieved': 'green',
-                'No': '#C0C0C0',
+                'No Target': '#C0C0C0',
                 'default': '#ecf0f1'
             }
         };
@@ -836,7 +835,7 @@
         };
 
         function cleanNetZeroStatus(status) {
-            if (!status || status === 'No' || status === '#N/A') return 'No';
+            if (!status || status === 'No' || status === '#N/A') return 'No Target';
             const lowerStatus = status.toLowerCase();
             if (lowerStatus.includes('in law')) return 'In Law';
             if (lowerStatus.includes('in policy document')) return 'In Policy Document';
@@ -992,13 +991,13 @@
                 const value = d[field];
 
                 if (currentLayer === 'paris') {
-                    inCategory = value === 'Joined Agreement' || value === 'Signed Agreement';
+                    inCategory = value === 'Joined Agreement';
                 } else if (currentLayer === 'ndc') {
                     inCategory = value === 'Submitted or Updated in 2025';
                 } else if (currentLayer === 'lts') {
                     inCategory = value === 'Yes';
                 } else if (currentLayer === 'net_zero') {
-                    inCategory = value === 'In Law' || value === 'In Policy Document' || value === 'Announced' || value === 'Achieved';
+                    inCategory = value === 'In Law' || value === 'In Policy Document' || value === 'Announced';
                 }
 
                 if (inCategory) {
@@ -1020,8 +1019,8 @@
             const layerSubtitles = {
                 'paris': `${categoryCount} nations have committed to the 1.5°C limit`,
                 'ndc': `${categoryCount} nations updated their NDCs in 2025`,
-                'lts': `Only ${categoryCount} out of ${totalCount} nations have submitted long-term strategies`,
-                'net_zero': `Only ${categoryCount} out of ${totalCount} nations have a net-zero emission target`
+                'lts': `${categoryCount} out of ${totalCount} nations have submitted long-term strategies`,
+                'net_zero': `${categoryCount} out of ${totalCount} nations have a net-zero emission target`
             };
 
             document.getElementById('kpiTitle').textContent = layerNames[currentLayer];
@@ -1302,8 +1301,8 @@
             const legendContent = document.getElementById('legendContent');
             legendContent.innerHTML = '';
 
-            // Center legend for LTS
-            if (currentLayer === 'lts') {
+            // Center legend for Paris, LTS, and Net Zero
+            if (currentLayer === 'paris' || currentLayer === 'lts' || currentLayer === 'net_zero') {
                 legendContent.style.left = '50%';
                 legendContent.style.transform = 'translateX(-50%)';
                 legendContent.style.justifyContent = 'center';
@@ -1315,10 +1314,11 @@
 
             const scheme = colorSchemes[currentLayer];
 
-            // Label mapping for LTS
+            // Label mapping for LTS and NDC
             const labelMapping = {
                 'Yes': 'Submitted',
-                'No': 'Not Submitted'
+                'No': 'Not Submitted',
+                'No NDC': 'No NDC'
             };
 
             for (const [key, color] of Object.entries(scheme)) {
@@ -1326,7 +1326,12 @@
 
                 const item = document.createElement('div');
                 item.className = 'legend-item';
-                const displayLabel = (currentLayer === 'lts' && labelMapping[key]) ? labelMapping[key] : key;
+                let displayLabel = key;
+                if (currentLayer === 'lts' && labelMapping[key]) {
+                    displayLabel = labelMapping[key];
+                } else if (currentLayer === 'ndc' && key === 'No NDC') {
+                    displayLabel = 'No NDC';
+                }
                 item.innerHTML = `
                     <div class="legend-color" style="background-color: ${color}"></div>
                     <span>${displayLabel}</span>
